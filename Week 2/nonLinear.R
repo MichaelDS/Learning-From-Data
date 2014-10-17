@@ -13,6 +13,7 @@
 # the feature vector (1, x1, x2, x1*x2, x1^2, x2^2) greatly improves its separability and results in the 
 # discovery of a much better final hypothesis via linear regression.
 
+
 ## Function for generating the data and, if specified, the target function y = sign(x1^2 + x2^2 - 0.6)
 data.generate <- function(n = 10, ext = 1, generateTarget = FALSE){ 
   # Generate the points
@@ -21,20 +22,14 @@ data.generate <- function(n = 10, ext = 1, generateTarget = FALSE){
   if (!generateTarget)
     return(data.frame(x1, x2))
   
-  # Draw a random line in the area (target function)
-  #point <- runif(2, -ext, ext)
-  #point2 <- runif(2, -ext, ext)
-  #slope <- (point2[2] - point[2]) / (point2[1] - point[1])
-  #intercept <- point[2] - slope * point[1]
-  
   # Set up a factor for point classification
-  #y <- as.numeric(x1 * slope + intercept > x2) * 2 - 1
   y <- sign(x1^2 + x2^2 - 0.6)
   
   # Return the values in a list
   data.frame(x1,x2,y)
   #return(list(data = data,slope = slope, intercept = intercept))
 }
+
 
 ## Uses regression to approximate target functions on simulated noisy and non-linearly separable data
 ## If specified, the data can transformed in order to improve linear separability
