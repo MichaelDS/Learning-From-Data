@@ -1,13 +1,13 @@
-# This experiment explores linear regression for classification in the case of noisy and extremely non-linearly 
-# separable data.  A target function f and a dataset D in d = 2 are created.  X = [-1, 1] x [-1, 1] with uniform 
-# probability of picking each x in X.  The target function for this experiment is set to the following:
-
+# This simulation implements and examines linear regression for classification in the case of noisy and extremely 
+# non-linearly separable data.  A target function f and a dataset D in d = 2 are created.  X = [-1, 1] x [-1, 1] with 
+# uniform probability of picking each x in X.  The target function for this simulation is set to the following:
+#
 # y = sign(x1^2 + x2^2 - 0.6)
-
+#
 # Additionally, noise is simulated by selecting 10% of the data points at random and flipping their response value.
 # The inputs, x_n, of the data set are chosen as random points (uniformly in X), and the target function 
 # is evaluated on each x_n to get the corresponding output, y_n.  
-
+#
 # Attempting to carry out linear regression on the un-transformed data, with feature vector (1, x1, x2), results
 # in a poor final hypothesis that pretty much amounts to guessing.  Transforming the data into a new space using
 # the feature vector (1, x1, x2, x1*x2, x1^2, x2^2) greatly improves its separability and results in the 
