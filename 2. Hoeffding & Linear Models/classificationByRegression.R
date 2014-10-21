@@ -1,23 +1,27 @@
-# This experiment explores linear regression for classification.  A target function f and a dataset D in d = 2 are 
-# created.  X = [-1, 1] x [-1, 1] with uniform probability of picking each x in X.  Each run of this experiment 
-# chooses a random line in the plane as the target function by taking the line passing through two random, 
-# uniformly distributed points in [-1, 1] x [-1, 1], where one side of the line maps to +1 and the other maps 
-# to -1. The inputs, x_n, of the data set are chosen as random points (uniformly in X), and the target function 
-# is evaluated on each x_n to get the corresponding output, y_n.
-
-# Linear regression is designed for use with real-valued output, however, it can also provide good results when
-# used for classification.  A big advantage of linear regression is the simplicity of the algorithm for computing
-# the final hypothesis.  This "one-step learning" is carried out as follows:
+# Supervised learning via linear regression is designed for use with real-valued output, however, it can also provide 
+# good results when used for classification.  An advantage of linear regression is the simplicity of the algorithm for 
+# computing the final hypothesis.  This "one-step learning" is carried out as follows:
+#
 # Given the N x n data matrix, X, and the N x 1 output matrix, y, compute the weight vector
-
+#
 # w = pseudoInverse(X) x y = (t(X) x X)^-1 x t(X) x y
-
+#
 # This weight vector minimizes the error measure (sum of squares), thus, the final hypothesis is computed.   
 # This weight vector can also be used as an initial weight vector for a learning algorithm designed for 
 # classification, such as PLA.  This provides the benefit of the more precise final hypothesis provided by PLA
 # along with a lower computation time than would have been required to run the PLA algorithm alone; this is 
 # because regression provides PLA with a good initial approximation, cheaply taking care of much of the searching 
 # that the PLA algorithm would otherwise have done.
+#
+# This simulation implements and examines linear regression for classification.  A target function f and a dataset D 
+# in d = 2 are created.  X = [-1, 1] x [-1, 1] with uniform probability of picking each x in X.  Each run chooses a 
+# random line in the plane as the target function by taking the line passing through two random, uniformly distributed 
+# points in [-1, 1] x [-1, 1], where one side of the line maps to +1 and the other maps to -1. The inputs, x_n, of the 
+# data set are chosen as random points (uniformly in X), and the target function is evaluated on each x_n to get the 
+# corresponding output, y_n. Regression is then be used to learn from this data and the final hypothesis is tested
+# against an independently generated data set.  This can be done  with or without any additional adjustment to the 
+# final hypothesis by PLA.
+
 
 ## Function for generating the data and, if specified, a target function
 data.generate <- function(n = 10, ext = 1, generateTarget = FALSE){ 
