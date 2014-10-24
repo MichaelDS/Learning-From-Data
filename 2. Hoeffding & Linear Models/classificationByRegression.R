@@ -50,12 +50,12 @@ data.generate <- function(n = 10, ext = 1, generateTarget = FALSE){
 ## If specified, the resulting regression model is used as a starting point for the perceptron(pocket) learning algorithm in order to further improve the approximation
 ## Returns a list containing the average of the in-sample and out-of-sample error measures of the final hypotheses obtained across numTrials
 ## Plots the target function and final hypothesis of the last trial against training data and against test data
-simulate.classificationByRegression <- function(N_train = 100, N_test = 1000, numTrials = 1000, PLA = FALSE, maxIterations = Inf) {
+classificationByRegression.simulate <- function(N_train = 100, N_test = 1000, numTrials = 1000, PLA = FALSE, maxIterations = Inf) {
   
   # initializing vectors to hold in-sample and out-of-sample error measures and the number of iterations taken by PLA, if applicable
-  e_in <- numeric(0)  
-  e_out <- numeric(0) 
-  iterations <- as.numeric(NA) 
+  e_in <- numeric(numTrials)  
+  e_out <- numeric(numTrials) 
+  iterations <- as.numeric(rep(NA, numTrials)) 
   
   for (i in 1:numTrials) {
     sim <- data.generate(N_train, generateTarget = TRUE)
@@ -71,7 +71,6 @@ simulate.classificationByRegression <- function(N_train = 100, N_test = 1000, nu
       while (any(sign(y_model) != y) && k < maxIterations) # as long as any of the elements of y_model do not match the true output, y, and the iterations threshold has not been reached
                                                            # the PLA algorithm continues to iterate
       {                                           
-        #cat("Iteration:", k, "\n")
         misclassified <- which(sign(y_model) != y)         # getting the indices of the points for which hypothesis is wrong
         ifelse (length(misclassified) == 1, n <- misclassified, n <- sample(misclassified, 1))  # randomly choose one of these points
         w <- w + y[n] * X[n,]                              # update the weights
@@ -114,6 +113,7 @@ simulate.classificationByRegression <- function(N_train = 100, N_test = 1000, nu
   list(e_in = mean(e_in), e_out = mean(e_out), iterations = mean(iterations)) # return the averages of the error measures and the number of iterations run by the PLA, if applicable
 }
 
-simulate.classificationByRegression()  # Problems 5 & 6
+set.seed(10111)
+classificationByRegression.simulate()  # Problems 5 & 6
 
-simulate.classificationByRegression(N_train = 10, PLA = TRUE)  # Problem 7
+classificationByRegression.simulate(N_train = 10, PLA = TRUE)  # Problem 7

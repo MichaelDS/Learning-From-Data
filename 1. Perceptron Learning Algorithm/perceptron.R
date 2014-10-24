@@ -53,9 +53,9 @@ data.generate <- function(n = 10, ext = 1, generateTarget = FALSE){
 
 ##### PLA  #####
 
-simulate.PLA <- function(N_train = 10, N_test = 1000, numTrials = 1000, maxIterations = Inf, simulation = data.generate) {
-  iterations <- numeric(0)    # initializing the iteration and misclassification probability vectors
-  probability <- numeric(0)
+PLA.simulate <- function(N_train = 10, N_test = 1000, numTrials = 1000, maxIterations = Inf, simulation = data.generate) {
+  iterations <- numeric(numTrials)    # initializing the iteration and misclassification probability vectors
+  probability <- numeric(numTrials)
   
   # Number of times to repeat the experiment is specified by numTrials
   
@@ -75,11 +75,10 @@ simulate.PLA <- function(N_train = 10, N_test = 1000, numTrials = 1000, maxItera
     while (any(sign(res) != generated$data$y) && k < maxIterations) # as long as any of the elements of res do not match the true output, y, and the iterations threshold has not been reached
                                                                     # the PLA algorithm continues to iterate  
     {                                           
-      #cat("Iteration:", k, "\n")
       misclassified <- which(sign(res) != generated$data$y)  # getting the indices of the points for which hypothesis is wrong
       ifelse (length(misclassified) == 1, n <- misclassified, n <- sample(misclassified,1))  # randomly choose one of these points
-      w <- w + generated$data$y[n]*input[n, ]       # update the weights
-      res <- apply(input, 1, function(x) t(w)%*%x)  # use new weights to update the hypothesis function
+      w <- w + generated$data$y[n]*input[n, ]                # update the weights
+      res <- apply(input, 1, function(x) t(w)%*%x)           # use new weights to update the hypothesis function
       e_in <- sum(sign(res) != generated$data$y)/length(res) # calculate in-sample error
       if (e_in < best[[1]]) {
         best <- list(e_in, w) # if a the current weight vector is better than the previous best, store it
@@ -91,7 +90,7 @@ simulate.PLA <- function(N_train = 10, N_test = 1000, numTrials = 1000, maxItera
     
     iterations[i] <- k  # store the number of iterations needed in this run
     
-    new.data <- simulation(N_test)  #  generating the test points in order to examine out-of-sample performance
+    new.data <- simulation(N_test)  # generating the test points in order to examine out-of-sample performance
     f <- as.numeric(new.data$x1 * generated$slope + generated$intercept > new.data$x2) * 2 - 1  # classifying points according to the true function f
     g <- as.numeric(new.data$x1 * (-w[2]/w[3]) - w[1]/w[3] > new.data$x2) * 2 - 1    # classifying points according to the hypothesised function g, using the 
                                                                                      # final weights provided by PLA            
@@ -112,6 +111,7 @@ simulate.PLA <- function(N_train = 10, N_test = 1000, numTrials = 1000, maxItera
   list(iterations = mean(iterations), probability = mean(probability)) 
 }
 
-simulate.PLA(10)  # Problems 7 & 8
+set.seed(10111)
+PLA.simulate(10)  # Problems 7 & 8
 
-simulate.PLA(100) # Problems 9 & 10
+PLA.simulate(100) # Problems 9 & 10

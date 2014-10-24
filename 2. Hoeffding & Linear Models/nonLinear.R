@@ -35,11 +35,11 @@ data.generate <- function(n = 10, ext = 1, generateTarget = FALSE){
 ## If specified, the data can transformed in order to improve linear separability
 ## Returns a list containing the average of the in-sample and out-of-sample error measures of the final hypotheses obtained across numTrials as well as a vector of the average of the weights obtained  across numTrials
 ## Plots the training data used for the last trial and color codes the data points by their responses
-simulate.nonLinear <- function(N_train = 1000, N_test = 1000, numTrials = 1000, transform = FALSE) {
+nonLinear.simulate <- function(N_train = 1000, N_test = 1000, numTrials = 1000, transform = FALSE) {
   
   # initializing vectors to hold in-sample and out-of-sample error measures
-  e_in <- numeric(0)
-  e_out <- numeric(0)
+  e_in <- numeric(numTrials)
+  e_out <- numeric(numTrials)
   ifelse(transform, g <- numeric(6), g <- numeric(3))  # initializing weight aggregator according to the length of the feature vector
   
   for (i in 1:numTrials) {
@@ -85,6 +85,7 @@ simulate.nonLinear <- function(N_train = 1000, N_test = 1000, numTrials = 1000, 
   list(e_in = mean(e_in), e_out = mean(e_out), w = g/numTrials) # return the averages of the error measures and the weights
 }
 
-simulate.nonLinear()  # Problem 8
+set.seed(10111)
+nonLinear.simulate()  # Problem 8
 
-simulate.nonLinear(transform = TRUE)  # Problems 9 & 10
+nonLinear.simulate(transform = TRUE)  # Problems 9 & 10

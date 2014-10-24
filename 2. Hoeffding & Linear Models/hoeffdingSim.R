@@ -19,10 +19,10 @@
 ## Simulation for flipping 1000 virtual fair coins a designated number of times
 ## Focuses on three coins; the first coin flipped, a randomly chosen coin, and the coin with the minimum frequency of heads
 ## Returns a list containing generated distributions of the fraction of heads obtained for the three respective coins
-simulate.flips <- function(numTrials = 100000, numFlips = 10) {
-  v1 <- numeric(0)
-  vrand <- numeric(0)
-  vmin <- numeric(0)
+flips.simulate <- function(numTrials = 100000, numFlips = 10) {
+  v1 <- numeric(numTrials)
+  vrand <- numeric(numTrials)
+  vmin <- numeric(numTrials)
   for (i in 1:numTrials) {
     res <- rbinom(n = 1000, size = numFlips, prob = 0.5)
     v1[i] <- res[1]/numFlips
@@ -46,8 +46,8 @@ hoeffding.rhs <- function(N = 10, epsilon) {
 ## Arguments: numTrials - Number of trials to pass to simulate.flips, numFlips - number of flips per trial, epsilon - vector of epsilon values on which to evaluate Hoeffding's inequality
 ## Return: List containing the means of the generated distributions of the fraction of heads obtained for the three respective coins
 ## Plots the left-hand side of the Hoeffding inequality against the right-hand side for the generated distributions of each of the three coins using the provided epsilon values
-plot.hoeffding <- function(numTrials = 100000, numFlips = 10, epsilon = seq(0, 1, .1)) {
-  simulation <- simulate.flips(numTrials, numFlips)
+hoeffding.plot <- function(numTrials = 100000, numFlips = 10, epsilon = seq(0, 1, .1)) {
+  simulation <- flips.simulate(numTrials, numFlips)
   probs <- lapply(simulation, function(x) sapply(epsilon, hoeffding.lhs, distribution = x))  # create a list of vectors of the values of the left-hand side of Hoeffding's inequality when evaluated for the distributions of each of the three coins across all of the provided epsilon values 
   layout(matrix(c(1, 2, 3), 1, 3))
   lapply(probs, function(x) {
@@ -61,5 +61,6 @@ plot.hoeffding <- function(numTrials = 100000, numFlips = 10, epsilon = seq(0, 1
   lapply(simulation, mean) # return v (in sample mean) for each of the coins
 }
 
-plot.hoeffding()  #Problems 1 & 2
+set.seed(10111)
+hoeffding.plot()  #Problems 1 & 2
 
