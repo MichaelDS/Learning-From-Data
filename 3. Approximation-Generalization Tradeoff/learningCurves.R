@@ -1,3 +1,5 @@
+############### NOTES ###############
+#
 # All learning problems involve an approximation-generalization tradeoff in that models with more complex hypothesis 
 # sets have a better chance of approximating their target functions while models with less complex hypothesis sets
 # have a better chance of generalizing out of sample. One method of quantifying this tradeoff is VC analysis which
@@ -27,6 +29,8 @@
 # The variance of the model's performance is a measure of how much the model's approximation varies from it's best
 # performance; this measure does depend on D.  In order to optimize the bias-variance tradeoff, one should always
 # match the model complexity to the data resources, NOT the target complexity.  
+#
+############### EXPERIMENT ###############
 #
 # Learning curves illustrate how in-sample and out-of-sample error vary with the size of the data set, N.  Their plots
 # indicate how well E_in generalizes to E_out across a range of N and, thus, can reveal local optima with respect to
