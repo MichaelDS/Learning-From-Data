@@ -1,30 +1,32 @@
-############### NOTES ###############
+############### APPROXIMATION-GENERALIZATION TRADEOFF ###############
 #
 # All learning problems involve an approximation-generalization tradeoff in that models with more complex hypothesis 
 # sets have a better chance of approximating their target functions while models with less complex hypothesis sets
 # have a better chance of generalizing out of sample. One method of quantifying this tradeoff is VC analysis which
 # imposes the following bound on out-of-sample error:
 #
-# With probability >= 1 - delta, (delta is the right-hand side of the Hoeffding inequality)
+# With probability >= 1 - delta, where delta = right-hand side of the VC inequality;
+# P[|E_in(g) - E_out(g)| > epsilon] <= 4*m_H(2N)*e^(-(1/8)*(epsilon^2)*N) = delta
 #
 # E_out <= E_in + omega
 #
-# where omega = sqrt((8/N)ln(4*m_H(2N)/delta)), N = sample size, 
+# where omega = sqrt((8/N)*ln(4*m_H(2N)/delta)), N = sample size, 
 # m_H(N) = growth function = SIGMA(i = 0, d_VC)Choose(N, i), and d_VC = VC Dimension = the largest number of points a
 # hypothesis set can shatter, or the largest value of N for which m_H(N) = 2^N.  
 #
 # The number of parameters in a model constitute analog degrees of freedom; d_VC translates these into
 # binary degrees of freedom for the context of producing dichotomies instead of continuous values. These quantities are
 # abstract measures of the expressiveness of a model.  Note that d_VC measures the EFFECTIVE number of parameters.
-# A rule of thumb is that a sample size >= 10*d_VC should be used in order to ensure that Hoeffding's inequality
+# A rule of thumb is that a sample size >= 10*d_VC should be used in order to ensure that the VC inequality
 # produces meaningful bounds.
 #
 # Another way of quantifying the tradeoff is bias-variance analysis.  It applies to real-valued targets and 
 # decomposes E_out as follows:
 #
-# The expected value of of E_out with respect to all possible data sets of size N, D, is the sum of the model's bias 
-# and variance; Expectation_D[E_out] = bias + variance.  Bias is a measure of the best approximation error that the
-# model can achieve; it does not depend on D and is determined by the variance of the noise (note the distinction 
+# The expected value of of E_out with respect to all possible training sets of size N, 
+# D = (x1, y1), (x2, y2), ..., (x_N, y_N), where the x_n's are picked independently from X, is the sum of the model's 
+# bias and variance; Expectation_D[E_out] = bias + variance.  Bias is a measure of the best approximation error that 
+# the model can achieve; it does not depend on D and is determined by the variance of the noise (note the distinction 
 # between this variance and the variance of the model's performance, which is the subject of bias-variance analysis).
 # The variance of the model's performance is a measure of how much the model's approximation varies from it's best
 # performance; this measure does depend on D.  In order to optimize the bias-variance tradeoff, one should always
@@ -48,7 +50,10 @@
 # produced again using fresh noise; this allows this data set to play the role of an out-of-sample data set.  
 #
 # The learning curves are plotted twice but with different shadings; one emphasizing in-sample error and generalization
-# error and the other emphasizing error due to model bias and variance.  
+# error and the other emphasizing error due to model bias and variance.  The curves will always exhibit an asymptotic
+# tendency toward the variance of the errors (bias).
+
+############### IMPLEMENTATION ###############
 
 ## Function for generating data
 data.generate <- function(n = 100, xdim = 2, xmax = 100) {
@@ -67,11 +72,11 @@ data.generate <- function(n = 100, xdim = 2, xmax = 100) {
   X
 }
 
-## Plots learning curves from the average values of E_in and E_out from a specified number of trials
+## Plots learning curves using the average values of E_in and E_out from a specified number of trials
 ## Uses linear regression to approximate the target function specified by w_target across specified values of N
-## The dimensionality (and degrees of freedom) of the data can be specified using the xdim parameter
-## The upper threshold for x values in the data set can be specified using the xmax parameter
-## Model bias can be specified by setting the standard deviation of the noise using the noisiness parameter
+## xdim - The dimensionality (and degrees of freedom) of the data 
+## xmax = The upper threshold for x values in the data set 
+## noisiness - Model bias; the standard deviation of the noise 
 learningCurves.simulate <- function(numTrials = 1000, noisiness = 5, xdim = 10, w_target = runif(xdim + 1, 0, 10), N_max = 1000, N_step = 50, xmax = 100) {
   N <- seq(xdim+1, N_max, N_step) # Initialize vector of sample sizes to test; start at d_VC = d + 1
   e_in <- numeric(length(N))      
@@ -101,7 +106,7 @@ learningCurves.simulate <- function(numTrials = 1000, noisiness = 5, xdim = 10, 
   gg1 <- ggplot_build(base) # build ggplot object in order to extract the y-values of the loess lines
   
   # construct a new data frame containing the y-values of the loess lines
-  # this step is necessary for proper shading because loess uses best-fit methods to caculate y-values for the lines
+  # this step is necessary for proper shading because loess uses best-fit methods to calculate y-values for the lines
   e2 <- data.frame(x = gg1$data[[1]]$x, ymin = gg1$data[[1]]$y, ymax = gg1$data[[2]]$y, bias = noisiness^2)
 
   plot1 <- base + geom_abline(intercept = noisiness^2, slope = 0) + geom_text(aes(0, bias, label = label, vjust = -0.3, hjust = 0.5), parse = TRUE) +
