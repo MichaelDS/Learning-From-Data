@@ -75,6 +75,7 @@ lm.horizontalLine <- function(X = NULL, y = NULL, degree = FALSE, equation = FAL
     return(0)
   else if(equation)
     return('h(x) = b')
+  
   b <- matrix(1, length(X), 1)
   rbind(solve(t(b)%*%b)%*%t(b)%*%y, 0)
 }
@@ -85,6 +86,7 @@ lm.lineThroughOrigin <- function(X = NULL, y = NULL, degree = FALSE, equation = 
     return(1)
   else if(equation)
     return('h(x) = ax')
+  
   rbind(0, solve(t(X)%*%X)%*%t(X)%*%y)
 }
 
@@ -94,6 +96,7 @@ lm.lineAndIntercept <- function(X = NULL, y = NULL, degree = FALSE, equation = F
     return(1)
   else if(equation)
     return('h(x) = ax + b')
+  
   X <- cbind(1, X)
   solve(t(X)%*%X)%*%t(X)%*%y
 }
@@ -104,6 +107,7 @@ lm.quadraticThroughOrigin <- function(X = NULL, y = NULL, degree = FALSE, equati
     return(2)
   else if(equation)
     return(expression(h(x)~'='~a*x^2))
+  
   rbind(0, solve(t(X^2)%*%X^2)%*%t(X^2)%*%y)
 }
 
@@ -113,6 +117,7 @@ lm.quadraticAndIntercept <- function(X = NULL, y = NULL, degree = FALSE, equatio
     return(2)
   else if(equation)
     return(expression(h(x)~'='~a*x^2 + b))
+  
   X <- cbind(1, X^2)
   solve(t(X)%*%X)%*%t(X)%*%y
 }
