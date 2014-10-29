@@ -122,7 +122,7 @@ bound.devroye <- function(N, delta = 0.05, d_VC = 50, m_H = m_H.approximate, eps
 }
 
 ## Plots each of the four bounds across specified values of N
-## Values of N < 3 will cause computation of the devroye bound to fail because of divergence
+## Values of N < 3 will cause computation of the devroye bound to fail because of divergence in the iteration method
 bounds.plot <- function(N = seq(3, 10003, 10), delta = 0.05, d_VC = 50, m_H = m_H.approximate, eps_0 = 0, margin = 0.0001, log.eval = TRUE) {
   vc <- numeric(length(N))
   rademacher <- numeric(length(N))
