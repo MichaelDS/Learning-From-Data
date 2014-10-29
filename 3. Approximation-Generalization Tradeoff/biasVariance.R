@@ -184,6 +184,8 @@ approximate.sinusoid <- function(numTrials = 1000, N_train = 2, N_test = 1000, m
   list(expected_hypothesis = g_bar, out_of_sample_error = e_out, bias = bias, variance = variance)  # function output
 }
 
+set.seed(10111)
+
 ## Problem 7
 approximate.sinusoid(model = lm.horizontalLine)
 approximate.sinusoid(model = lm.lineThroughOrigin) # Problems 4, 5, and 6

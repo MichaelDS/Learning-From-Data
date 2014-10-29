@@ -46,12 +46,18 @@
 
 ## A simple approximation for growth functions using N^(d_VC)
 ## If N <= d_VC, then the growth function can be computed exactly as 2^N because the sample can be shattered
-## log.scale - When set to true, the approximation is evaluated at natural log scale
-m_H.approximate <- function(N, d_VC, log.scale = FALSE) {
+## log.apply - When set to true, the natural log is applied to the approximation; useful for dealing with large numbers
+m_H.approximate <- function(N, d_VC, log.apply = FALSE) {
+  if(log.apply) {
+    if(N <= d_VC)
+      return(N*log(2))
+    else
+      return(d_VC*log(N))
+  }
+  
   if(N <= d_VC)
     return(2^N)
-  if(log.scale)
-    d_VC*log(N)
+  
   else
     N^(d_VC)
 }
@@ -99,22 +105,24 @@ bound.parrondo_vanDenBroek <- function(N, delta = 0.05, d_VC = 50, m_H = m_H.app
 
 ## Calculates the Devroye bound on generalization error for specified parameters
 ## The bound is an implicit bound on eps; thus, it is solved by iterative method
+## This bound is trivial and always satisfied for N < 3; iteration will not converge in this range
 ## log.eval - When set to true, the log expression in the bound will be expanded; useful for handling very large numbers
 bound.devroye <- function(N, delta = 0.05, d_VC = 50, m_H = m_H.approximate, eps_0 = 0, margin = 0.0001, log.eval = TRUE) {
   if(log.eval)
-    expression <- sqrt((1/(2*N))*(4*eps_0*(1 + eps_0) + log(4) + m_H(N = N^2, d_VC = d_VC, log.scale = TRUE) - log(delta)))
+    bound <- function(x) sqrt((1/(2*N))*(4*x*(1 + x) + log(4) + m_H(N = N^2, d_VC = d_VC, log.apply = TRUE) - log(delta)))
   else
-    expression <- sqrt((1/(2*N))*(4*eps_0*(1 + eps_0) + log((4*m_H(N^2, d_VC))/delta)))
-  eps_1 <- expression
+    bound <- function(x) sqrt((1/(2*N))*(4*x*(1 + x) + log((4*m_H(N^2, d_VC))/delta)))
+  eps_1 <- bound(eps_0)
   while(eps_1 - eps_0 > margin) {
     eps_0 <- eps_1
-    eps_1 <- expression
+    eps_1 <- bound(eps_0)
   }
+  
   eps_1
 }
 
 ## Plots each of the four bounds across specified values of N
-bounds.plot <- function(N = seq(1, 10001, 10), delta = 0.05, d_VC = 50, m_H = m_H.approximate, eps_0 = 0, margin = 0.0001, log.eval = TRUE) {
+bounds.plot <- function(N = seq(3, 10003, 10), delta = 0.05, d_VC = 50, m_H = m_H.approximate, eps_0 = 0, margin = 0.0001, log.eval = TRUE) {
   vc <- numeric(length(N))
   rademacher <- numeric(length(N))
   parrondoVdB <- numeric(length(N))
