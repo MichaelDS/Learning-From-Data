@@ -93,7 +93,7 @@ bound.rademacherPenalty <- function(N, delta = 0.05, d_VC = 50, m_H = m_H.approx
 }
 
 ## Calculates the Parrondo and Van De Broek bound on generalization error for specified parameters
-## The bound is an implicit bound on eps; thus, it is solved by iterative method
+## The bound is an implicit bound on eps; it is solved here by iterative method
 bound.parrondo_vanDenBroek <- function(N, delta = 0.05, d_VC = 50, m_H = m_H.approximate, eps_0 = 0, margin = 0.0001) {
   eps_1 <- sqrt((1/N)*(2*eps_0 + log((6*m_H(2*N, d_VC))/delta)))
   while(eps_1 - eps_0 > margin) {
@@ -104,7 +104,7 @@ bound.parrondo_vanDenBroek <- function(N, delta = 0.05, d_VC = 50, m_H = m_H.app
 }
 
 ## Calculates the Devroye bound on generalization error for specified parameters
-## The bound is an implicit bound on eps; thus, it is solved by iterative method
+## The bound is an implicit bound on eps; it is solved here by iterative method
 ## For N < 3, this bound is trivial and always satisfied; iteration will not converge in this range
 ## log.eval - When set to true, the log expression in the bound will be expanded; useful for handling very large numbers
 bound.devroye <- function(N, delta = 0.05, d_VC = 50, m_H = m_H.approximate, eps_0 = 0, margin = 0.0001, log.eval = TRUE) {
