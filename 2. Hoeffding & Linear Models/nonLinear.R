@@ -1,10 +1,21 @@
-# This simulation implements and examines linear regression for classification in the case of noisy and extremely 
-# non-linearly separable data.  A target function f and a dataset D in d = 2 are created.  X = [-1, 1] x [-1, 1] with 
-# uniform probability of picking each x in X.  The target function for this simulation is set to the following:
+############### NOISY & NON-LINEARLY SEPARABLE DATA ###############
 #
-# y = sign(x1^2 + x2^2 - 0.6)
+# Noisy targets are generated from the target distribution P(y|x). Each input vector and output pair, (x,y), is 
+# generated independently by the joint distribution P(x)*P(y|x).  
 #
-# Additionally, noise is simulated by selecting 10% of the data points at random and flipping their response value.
+# A noisy target, y, is defined as the deterministic target f(x) = E[y|x] plus noise y - f(x).  
+# A purely deterministic target is a special case of a noisy target: P(y|x) is zero except for y = f(x).
+#
+############### SIMULATION ###############
+#
+# This simulation implements linear regression and uses it for classification in the case of noisy and extremely 
+# non-linearly separable data. A target function f and a dataset D in d = 2 are created.  X = [-1, 1] x [-1, 1] with 
+# uniform probability of picking each x in X.  The deterministic target function for this simulation is set to 
+# the following:
+#
+# f(x) = sign(x1^2 + x2^2 - 0.6)
+#
+# Noise is simulated by selecting 10% of the data points at random and flipping their response value.
 # The inputs, x_n, of the data set are chosen as random points (uniformly in X), and the target function 
 # is evaluated on each x_n to get the corresponding output, y_n.  
 #

@@ -1,3 +1,5 @@
+############### LINEAR CLASSIFICATION:  THE PERCEPTRON (POCKET) LEARNING ALGORITHM ###############
+#
 # The Perceptron is a learning algorithm for supervised classification on linearly separable data.  The algorithm
 # is implemented as follows:
 #
@@ -15,7 +17,7 @@
 # Use the updated hypothesis to classify the data; if any points are still misclassified, choose one at random
 # and repeat the algorithm until all points are classified correctly.
 #
-# The Perceptron learning algorithm can be modified to accomodated non-linearly separable data by keeping track
+# The Perceptron learning algorithm can be modified to accomodate non-linearly separable data by keeping track
 # of the weight vector that produced the best in-sample error and using it as the final set of weights after
 # terminating the algorithm at a designated iteration.  This version of PLA is referred to as the Pocket algorithm.
 #
