@@ -1,8 +1,8 @@
 ############### LINEAR REGRESSION & CLASSIFICATION ###############
 #
-# Supervised learning via linear regression is designed for use with real-valued output, however, it can also provide 
-# good results when used for classification.  An advantage of linear regression is the simplicity of the algorithm for 
-# computing the final hypothesis.  This "one-step learning" is carried out as follows:
+# Supervised learning via linear regression is designed for use with real-valued output, however, it can also be used 
+# for classification.  An advantage of linear regression is the simplicity of the algorithm for computing the final 
+# hypothesis.  This "one-step learning" is carried out as follows:
 #
 # Given the N x n data matrix, X, and the N x 1 output matrix, y, compute the weight vector
 #
@@ -15,7 +15,7 @@
 # because regression provides PLA with a good initial approximation, cheaply taking care of much of the searching 
 # that the PLA algorithm would otherwise have done.
 #
-# This simulation implements implements linear regression uses it for classification.  A target function f and a 
+# This simulation implements implements linear regression and uses it for classification.  A target function f and a 
 # dataset D in d = 2 are created.  X = [-1, 1] x [-1, 1] with uniform probability of picking each x in X.  Each run 
 # chooses a random line in the plane as the target function by taking the line passing through two random, uniformly 
 # distributed points in [-1, 1] x [-1, 1], where one side of the line maps to +1 and the other maps to -1. The inputs, 
@@ -97,6 +97,8 @@ classificationByRegression.simulate <- function(N_train = 100, N_test = 1000, nu
     y_model <- sign(as.vector(X%*%w))                # apply the hypothesis function to the test data
     e_out[i] <- sum(y != y_model)/N_test             # calculate and store out-of-sample error
   }
+  
+  # Plot the points and f and g functions from the last iteration (purely illustrative purposes)
   
   library(ggplot2)
   library(gridExtra)
