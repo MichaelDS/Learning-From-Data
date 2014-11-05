@@ -37,6 +37,19 @@
 #   5.  Iterate to the next t until a stopping condition is met
 #   6. Return the final weights w
 #
+# NOTE: Stochastic gradient descent was used for the following implementation of logistic regression; thus, in this 
+# case, the algorithm looks as follows:
+#
+# The algorithm for logistic regression is as follows:
+#   1. Initialize the weights at t = 0 to w(0) (This makes sense with logistic regression; initially we know nothing)
+#   2. for t = 0, 1, 2, ... do
+#   3.  for i = 1, 2, 3, ... N
+#   4.    Choose a point (xn, yn) from the training set at random without replacement
+#   5.    Compute the gradient of e_in(h(xi), yi)
+#   6.    Update the weights: w = w - eta*gradient(e(h(xi), yi))
+#   5.  Iterate to the next epoch t until a stopping condition is met
+#   6. Return the final weights w
+#
 ############### DEFINITIONS ###############
 #
 # f = The target function
@@ -71,7 +84,10 @@
 # evaluate the error.  The experiment is repeated a specified number of times and the results are averaged.  
 #
 # The algorithm is stopped when ||w_(t-1) - w_(t)|| < 0.01, where w_(t) denotes the weight vector at the end of epoch t.
-# A random permutation of 1, 2, ..., N is used to the present the data points to the algorithm within each epoch.
+# This stopping condition takes advantage of the fact that a learning rate is being used in the stochastic gradient 
+# descent algorithm; as w approaches a value that minimizes the error function, the change in w becomes progressively
+# smaller from epoch to epoch because slope along the gradient is relatively flat. A random permutation of 1, 2, ..., N 
+# is used to the present the data points to the algorithm within each epoch.
 #
 # Plots of the final hypothesis and corresponding "target function" against training and test data are produced using 
 # the results from the final trial.  "Target function" is in quotations because what is plotted is the line representing
