@@ -25,11 +25,13 @@
 #
 # The expected value of of E_out with respect to all possible training sets of size N, 
 # D = (x1, y1), (x2, y2), ..., (x_N, y_N), where the x_n's are picked independently from X, is the sum of the model's 
-# bias and variance; Expectation_D[E_out] = bias + variance.  Bias is a measure of the best approximation error that 
-# the model can achieve; it does not depend on D and is determined by the variance of the noise (note the distinction 
-# between this variance and the variance of the model's performance, which is the subject of bias-variance analysis).
-# The variance of the model's performance is a measure of how much the model's approximation varies from it's best
-# performance; this measure does depend on D.  In order to optimize the bias-variance tradeoff, one should always
+# expected bias and expected variance (and expected energy of the stochastic noise in the case of noisy targets); 
+# Expectation_D[E_out] = Expectation_x[bias] + Expectation(D,x)[variance] (+Expectation_(eps,x)[eps(x)^2].  Bias is a 
+# measure of the best approximation error that the model can achieve; it does not depend on D and is determined by the 
+# (in)ability of the model to replicate the target as well as by the variance of the noise (note the distinction 
+# between this variance and the variance of the model's performance, which is the subject of bias-variance analysis).  
+# The variance of the model's performance is a measure of how much the model's approximation varies from it's best 
+# performance; this measure does depend on D.  In order to optimize the bias-variance tradeoff, one should always 
 # match the model complexity to the data resources, NOT the target complexity.  
 #
 ############### EXPERIMENT ###############
@@ -51,7 +53,8 @@
 #
 # The learning curves are plotted twice but with different shadings; one emphasizing in-sample error and generalization
 # error and the other emphasizing error due to model bias and variance.  The curves will always exhibit an asymptotic
-# tendency toward the variance of the errors (bias).
+# tendency toward the bias, which, in this case, is equal to the variance of the errors because the model is 
+# capable of fully replicating the target function.  
 
 ############### IMPLEMENTATION ###############
 

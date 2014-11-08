@@ -33,6 +33,11 @@
 #
 # 4. Therefore, E_D[E_out(g^D)] = E_x[E_D[(g^D(x) - f(x))^2]] = E_x[bias(x) + var(x)] = bias + var
 #
+# *In the presence of stochastic noise; 
+# E_(D,eps)[(g^D(x) - f(x))^2] = E_(D,x)[(g^D(x) - g_bar(X))^2] + E_x[(g_bar(x) - f(x))^2] + E_(eps,x)[eps(x)^2] 
+#                              = var(x) + bias(x) + eps(x)^2
+#                              = variance + bias + stochastic_noise
+#
 # bias = (g_bar(x) - f(x))^2
 # var = E_D[(g^D(x) - g_bar(X))^2]
 #
