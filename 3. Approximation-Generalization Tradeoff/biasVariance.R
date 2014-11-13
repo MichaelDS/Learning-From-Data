@@ -22,6 +22,7 @@
 # E_x = Expectation with respect to x
 # E_in(g) = In-Sample Error
 # E_out(g) = Out-of-Sample Error
+# eps(x)^2 = Energy of stochastic noise
 #
 # g_bar(x) = the "average" hypothesis = E_D[g^D(x)]
 #

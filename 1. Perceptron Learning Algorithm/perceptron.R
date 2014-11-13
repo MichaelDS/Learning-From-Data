@@ -21,7 +21,7 @@
 # of the weight vector that produced the best in-sample error and using it as the final set of weights after
 # terminating the algorithm at a designated iteration.  This version of PLA is referred to as the Pocket algorithm.
 #
-# This simulation implements and examines supervised classification via the Perceptron (pocket) learnin algorithm.  
+# This simulation implements and examines supervised classification via the Perceptron (pocket) learning algorithm.  
 # A target function f and a dataset D in d = 2 are created.  X = [-1, 1] x [-1, 1] with uniform probability of picking 
 # each x in X.  Each run chooses a random line in the plane as the target function by taking the line passing through 
 # two random, uniformly distributed points in [-1, 1] x [-1, 1], where one side of the line maps to +1 and the other 
