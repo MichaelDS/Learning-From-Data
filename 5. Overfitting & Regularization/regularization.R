@@ -157,6 +157,10 @@
 # under-fitting, as they produce greater out-of-sample error than is achieved without regularization.  Values of 
 # lambda <= 10^-2 perform comparably to using the model without regularization.
 
+### OPTIONAL TODO
+# Plot classified y against x1 and x2; plot the decision boundary and observe how it changes for given lambda
+# Look into filled contours in ggplot2
+
 ############### IMPLEMENTATION ###############
 
 ## Performs the non-linear transformation phi(x1, x2) = (1, x1, x2, x1^2, x2^2, x1*x2, |x1 - x2|, |x1 + x2|)
