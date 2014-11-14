@@ -156,16 +156,15 @@
 # minimize overfitting and produce the smallest out-of-sample error.  Values of lambda >= 10^0 appears to cause 
 # under-fitting, as they produce greater out-of-sample error than is achieved without regularization.  Values of 
 # lambda <= 10^-2 perform comparably to using the model without regularization.
-
-### OPTIONAL TODO
-# Plot classified y against x1 and x2; plot the decision boundary and observe how it changes for given lambda
-# Look into filled contours in ggplot2
+#
+# The training and test data are plotted against the decision boundary produced by the final hypothesis given the
+# specified value of lambda.
 
 ############### IMPLEMENTATION ###############
 
 ## Performs the non-linear transformation phi(x1, x2) = (1, x1, x2, x1^2, x2^2, x1*x2, |x1 - x2|, |x1 + x2|)
 ## Returns the transformed input 
-## D- Complete training set with two-dimensional input
+## D- Training set with two-dimensional input
 transform.phi <- function(D) {
   x1 <- D[1]
   x2 <- D[2]
@@ -175,8 +174,8 @@ transform.phi <- function(D) {
 
 ## Performs classification using linear regression and, if specified, uses a non-linear transformation and regularization
 ## Returns measures of the in-sample and out-of-sample errors achieved
-## D_train - Training set
-## D_test - Test set
+## D_train - Training set with column names
+## D_test - Test set with column names
 ## transform - A function which returns a non-linear transformation on the input of the training set
 ## lambda - Strength of regularization
 regression.classify <- function(D_train, D_test, transform = NULL, lambda = 0) {
@@ -194,18 +193,52 @@ regression.classify <- function(D_train, D_test, transform = NULL, lambda = 0) {
   w <- solve(t(X)%*%X + lambda*diag(nrow(t(X)%*%X)))%*%t(X)%*%y_train  # one-step learning with regularization
 
   # Apply the final hypothesis to the inputs and calculate E_in and E_out
-  y_model <- sign(t(w)%*%t(X))
-  E_in <- sum(y_model != y_train)/length(y_model)
+  y_trainFit <- sign(t(w)%*%t(X))
+  E_in <- sum(y_trainFit != y_train)/length(y_trainFit)
   
-  y_model <- sign(t(w)%*%t(X_test))
-  E_out <- sum(y_model != y_test)/length(y_model)
+  y_testFit <- sign(t(w)%*%t(X_test))
+  E_out <- sum(y_testFit != y_test)/length(y_testFit)
+  
+  library(ggplot2)
+  library(gridExtra)
+  titlePiece <- as.character(lambda)                                                # store value of lambda for plot title
+  grid.fit <- expand.grid(list(x1 = seq(-1.5, 1.5, .01), x2 = seq(-1.5, 1.5, .01))) # create a data frame of all combinations of specified x1 and x2 values
+  grid.transformed <- transform(grid.fit)                                           # transform the grid into the feature space defined by the non-linear transformation
+  y <- sign(t(w)%*%t(grid.transformed))                                             # apply the final hypothesis to every point on the transformed grid in order to obtain predicted y values 
+  grid.fit$y <- t(y)                                                                # append the predictions to the un-transformed grid
+  
+  ## Set up the basic plot and the decision boundary
+  base <- ggplot(data = grid.fit, aes(x1, x2, fill = as.factor(y))) + geom_tile() +
+    xlab("x1") + ylab("x2") + 
+    scale_fill_discrete(limits = c(-1, 1)) +                                # was originally using scale_fill_gradient; discrete makes more sense here
+    scale_fill_manual(values = c('gray97', 'lightgoldenrod')) +
+    labs(fill = 'Decision Boundary')
+  
+  ## Plot the training set against the base plot
+  plot1 <- base + ggtitle(bquote('Training Data: '~lambda == .(titlePiece))) +
+    geom_point(data = D_train, aes(x1, x2, colour = as.factor(y))) +
+    labs(colour = 'y') + 
+    scale_colour_manual(values = c('red', 'blue')) +
+    scale_x_continuous(expand = c(0,0)) +
+    scale_y_continuous(expand = c(0,0))
+  
+  ## Plot the test set against the base plot
+  plot2 <- base + ggtitle(bquote('Test Data: '~lambda == .(titlePiece))) +
+    geom_point(data = D_test, aes(x1, x2, colour = as.factor(y))) +
+    labs(colour = 'y') + 
+    scale_colour_manual(values = c('red', 'blue')) +
+    scale_x_continuous(expand = c(0,0)) +
+    scale_y_continuous(expand = c(0,0))
+
+  # Print the two plots and add a main title
+  grid.arrange(plot1, plot2, ncol = 2, main = textGrob("Ridge Regression", gp=gpar(cex=1.5), vjust = 0.7))  
   
   list(E_in = E_in, E_out = E_out) # return E_in and E_out
 }
 
 ## Read data sets for problems 2-6
-train <- read.table('in.txt')
-test <- read.table('out.txt')
+train <- read.table('in.txt', col.names = c('x1', 'x2', 'y'))
+test <- read.table('out.txt', col.names = c('x1', 'x2', 'y'))
 
 regression.classify(train, test, transform.phi) # Problem 2
 
