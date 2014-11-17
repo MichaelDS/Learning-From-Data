@@ -135,7 +135,7 @@ lm.quadraticAndIntercept <- function(X = NULL, y = NULL, degree = FALSE, equatio
 ## N_train - The sample size of the training sets
 ## N_test - The sample size of the test sets
 ## model - The learning model to use
-## plotApproximations - When set to TRUE, will construct a plot illustrating bias/variance for the model; setting this to TRUE will significantly increase the run-time of the simulation
+## plotApproximations - When set to TRUE, will construct a plot illustrating bias/variance for the model; setting this to TRUE will significantly increase the running time of the simulation
 approximate.sinusoid <- function(numTrials = 1000, N_train = 2, N_test = 1000, model = lm.lineThroughOrigin, plotApproximations = FALSE) {
   g <- matrix(0, numTrials, 2)    # initialize matrix to hold hypotheses calculated during each trial
   e_out <- numeric(1)             # initialize vector to aggregate out-of-sample error

@@ -114,6 +114,9 @@
 #
 # E_aug(h) = E_in(h) + (lambda/N)*OMEGA(h)
 #
+# In a practical situation, the above OMEGA is a heuristic choice guided by theory and certain goals.  The choice of
+# lambda is more principled and accomplished via validation.
+#
 # Recall from VC analysis that: 
 # 
 # E_out(h) <= E_in(h) + OMEGA(H), (OMEGA is generalization error here)
@@ -121,16 +124,17 @@
 # E_aug is better than E_in as a proxy for E_out.
 #
 # Guiding principle for choosing a regularizer:
-# The regularizer should constrain in the direction of 'smoother' or simpler
+# The regularizer should constrain in the direction of 'smoother' or simpler h.
 #
 # Early stopping is another form of regularization that is done through the optimizer which stops optimization of 
 # E_in before overfitting occurs.  When to stop done is determined in a principled way via validation.
 #
 ############### DEFINITIONS ###############
 #
-# lambda = A constant whose value determines how much emphasis is placed on the regularization term during fitting
+# lambda = A constant whose value determines how much emphasis is placed on the regularization term during fitting. (The amount of regularization)
 # N = Sample Size
 # f = The target function
+# H = The full hypothesis set
 # h, g = A hypothesis function for approximating a target function
 # h^D, g^D = A hypothesis function for approximating a target function given a training set of size N, D
 # E_D = Expectation with respect to all possible training sets of size N, D
@@ -164,7 +168,7 @@
 
 ## Performs the non-linear transformation phi(x1, x2) = (1, x1, x2, x1^2, x2^2, x1*x2, |x1 - x2|, |x1 + x2|)
 ## Returns the transformed input 
-## D- Training set with two-dimensional input
+## D - Training set with two-dimensional input
 transform.phi <- function(D) {
   x1 <- D[1]
   x2 <- D[2]
@@ -178,7 +182,8 @@ transform.phi <- function(D) {
 ## D_test - Test set with column names
 ## transform - A function which returns a non-linear transformation on the input of the training set
 ## lambda - Strength of regularization
-regression.classify <- function(D_train, D_test, transform = NULL, lambda = 0) {
+## plotBoundary - When set to TRUE, will plot the training and tests sets against the decision boundary; setting this to TRUE will increase the running time of the experiment
+regression.classify <- function(D_train, D_test, transform = NULL, lambda = 0, plotBoundary = FALSE) {
   y_train <- D_train[[length(D_train)]] 
   y_test <- D_test[[length(D_test)]]
   if(is.null(transform)) {               # if no transformation is specified, simply use the provided input
@@ -199,39 +204,41 @@ regression.classify <- function(D_train, D_test, transform = NULL, lambda = 0) {
   y_testFit <- sign(t(w)%*%t(X_test))
   E_out <- sum(y_testFit != y_test)/length(y_testFit)
   
-  library(ggplot2)
-  library(gridExtra)
-  titlePiece <- as.character(lambda)                                                # store value of lambda for plot title
-  grid.fit <- expand.grid(list(x1 = seq(-1.5, 1.5, .01), x2 = seq(-1.5, 1.5, .01))) # create a data frame of all combinations of specified x1 and x2 values
-  grid.transformed <- transform(grid.fit)                                           # transform the grid into the feature space defined by the non-linear transformation
-  y <- sign(t(w)%*%t(grid.transformed))                                             # apply the final hypothesis to every point on the transformed grid in order to obtain predicted y values 
-  grid.fit$y <- t(y)                                                                # append the predictions to the un-transformed grid
-  
-  ## Set up the basic plot and the decision boundary
-  base <- ggplot(data = grid.fit, aes(x1, x2, fill = as.factor(y))) + geom_tile() +
-    xlab("x1") + ylab("x2") + 
-    scale_fill_discrete(limits = c(-1, 1)) +                                # was originally using scale_fill_gradient; discrete makes more sense here
-    scale_fill_manual(values = c('gray97', 'lightgoldenrod')) +
-    labs(fill = 'Decision Boundary')
-  
-  ## Plot the training set against the base plot
-  plot1 <- base + ggtitle(bquote('Training Data: '~lambda == .(titlePiece))) +
-    geom_point(data = D_train, aes(x1, x2, colour = as.factor(y))) +
-    labs(colour = 'y') + 
-    scale_colour_manual(values = c('red', 'blue')) +
-    scale_x_continuous(expand = c(0,0)) +
-    scale_y_continuous(expand = c(0,0))
-  
-  ## Plot the test set against the base plot
-  plot2 <- base + ggtitle(bquote('Test Data: '~lambda == .(titlePiece))) +
-    geom_point(data = D_test, aes(x1, x2, colour = as.factor(y))) +
-    labs(colour = 'y') + 
-    scale_colour_manual(values = c('red', 'blue')) +
-    scale_x_continuous(expand = c(0,0)) +
-    scale_y_continuous(expand = c(0,0))
-
-  # Print the two plots and add a main title
-  grid.arrange(plot1, plot2, ncol = 2, main = textGrob("Ridge Regression", gp=gpar(cex=1.5), vjust = 0.7))  
+  if(plotBoundary) {
+    library(ggplot2)
+    library(gridExtra)
+    titlePiece <- as.character(lambda)                                                # store value of lambda for plot title
+    grid.fit <- expand.grid(list(x1 = seq(-1.5, 1.5, .01), x2 = seq(-1.5, 1.5, .01))) # create a data frame of all combinations of specified x1 and x2 values
+    grid.transformed <- transform(grid.fit)                                           # transform the grid into the feature space defined by the non-linear transformation
+    y <- sign(t(w)%*%t(grid.transformed))                                             # apply the final hypothesis to every point on the transformed grid in order to obtain predicted y values 
+    grid.fit$y <- t(y)                                                                # append the predictions to the un-transformed grid
+    
+    ## Set up the basic plot and the decision boundary
+    base <- ggplot(data = grid.fit, aes(x1, x2, fill = as.factor(y))) + geom_tile() +
+      xlab("x1") + ylab("x2") + 
+      scale_fill_discrete(limits = c(-1, 1)) +                                # was originally using scale_fill_gradient; discrete makes more sense here
+      scale_fill_manual(values = c('gray97', 'lightgoldenrod')) +
+      labs(fill = 'Decision Boundary')
+    
+    ## Plot the training set against the base plot
+    plot1 <- base + ggtitle(bquote('Training Data: '~lambda == .(titlePiece))) +
+      geom_point(data = D_train, aes(x1, x2, colour = as.factor(y))) +
+      labs(colour = 'y') + 
+      scale_colour_manual(values = c('red', 'blue')) +
+      scale_x_continuous(expand = c(0,0)) +
+      scale_y_continuous(expand = c(0,0))
+    
+    ## Plot the test set against the base plot
+    plot2 <- base + ggtitle(bquote('Test Data: '~lambda == .(titlePiece))) +
+      geom_point(data = D_test, aes(x1, x2, colour = as.factor(y))) +
+      labs(colour = 'y') + 
+      scale_colour_manual(values = c('red', 'blue')) +
+      scale_x_continuous(expand = c(0,0)) +
+      scale_y_continuous(expand = c(0,0))
+    
+    # Print the two plots and add a main title
+    grid.arrange(plot1, plot2, ncol = 2, main = textGrob("Ridge Regression with Non-Linear Transformation", gp=gpar(cex=1.5), vjust = 0.7)) 
+  }  
   
   list(E_in = E_in, E_out = E_out) # return E_in and E_out
 }
@@ -252,4 +259,15 @@ regression.classify(train, test, transform.phi, lambda = 10^1)
 regression.classify(train, test, transform.phi, lambda = 10^0)
 regression.classify(train, test, transform.phi, lambda = 10^-1)
 regression.classify(train, test, transform.phi, lambda = 10^-2)
+
+## Sample calls to run experiment with the plotting feature activated
+# regression.classify(train, test, transform.phi, plotBoundary = TRUE)
+# regression.classify(train, test, transform.phi, lambda = 10^-3, plotBoundary = TRUE)
+# regression.classify(train, test, transform.phi, lambda = 10^-2, plotBoundary = TRUE)
+# regression.classify(train, test, transform.phi, lambda = 10^-1, plotBoundary = TRUE)
+# regression.classify(train, test, transform.phi, lambda = 10^0, plotBoundary = TRUE)
+# regression.classify(train, test, transform.phi, lambda = 10^1, plotBoundary = TRUE)
+# regression.classify(train, test, transform.phi, lambda = 10^2, plotBoundary = TRUE)
+# regression.classify(train, test, transform.phi, lambda = 10^3, plotBoundary = TRUE)
+
 

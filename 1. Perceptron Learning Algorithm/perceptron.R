@@ -30,54 +30,55 @@
 # the final hypothesis is tested against an independently generated data set.  
 
 
-## Function for generating the data and, if specified, a target function
-data.generate <- function(n = 10, ext = 1, generateTarget = FALSE){ 
-  # Generate the points
-  x1 <- runif(n, -ext, ext)
-  x2 <- runif(n, -ext, ext)
+## Generates the input data and, if specified, a target function
+data.generate <- function(N = 10, limits = c(-1, 1), generateTarget = FALSE){ 
+  # generate the points
+  x1 <- runif(N, limits[1], limits[2])
+  x2 <- runif(N, limits[1], limits[2])
   if (!generateTarget)
     return(data.frame(x1, x2))
   
-  # Draw a random line in the area (target function)
-  point <- runif(2, -ext, ext)
-  point2 <- runif(2, -ext, ext)
+  # draw a random line in the area (target function)
+  point <- runif(2, limits[1], limits[2])
+  point2 <- runif(2, limits[1], limits)
   slope <- (point2[2] - point[2]) / (point2[1] - point[1])
   intercept <- point[2] - slope * point[1]
   
-  # Set up a factor for point classification
+  # set up a factor for point classification
   y <- as.numeric(x1 * slope + intercept > x2) * 2 - 1
   
-  # Return the values in a list
-  data <- data.frame(x1,x2,y)
-  return(list(data = data,slope = slope, intercept = intercept))
+  data <- data.frame(x1,x2,y) # put the training set together
+  
+  return(list(data = data, slope = slope, intercept = intercept)) # return the values in a list
 }  
 
 
-##### PLA  #####
-
+## Uses the perceptron(pocket) learning algorithm to approximate target functions on simulated data
+## Returns a list containing the number of iterations taken by PLA and the out-of-sample error averaged across numTrials
+## Plots the target function and final hypothesis of the last trial against training data and against test data
 PLA.simulate <- function(N_train = 10, N_test = 1000, numTrials = 1000, maxIterations = Inf, simulation = data.generate) {
-  iterations <- numeric(numTrials)    # initializing the iteration and misclassification probability vectors
-  probability <- numeric(numTrials)
+  iterations <- numeric(numTrials)    # initialize the iteration and misclassification probability vectors
+  E_out <- numeric(numTrials)
   
-  # Number of times to repeat the experiment is specified by numTrials
+  # number of times to repeat the experiment is specified by numTrials
   
   for (i in 1:numTrials){
-    generated <- simulation(n = N_train, generateTarget = TRUE) # generating points (set n=10 or n=100) and target function
-    input <- as.matrix(cbind(1, generated$data[c(1,2)])) # creating the input matrix
+    generated <- simulation(N = N_train, generateTarget = TRUE) # generate points and target function
+    input <- as.matrix(cbind(1, generated$data[c(1,2)])) # create the input matrix
     
     w <- c(0,0,0)  # initializing the weight vector
     
-    #res <- apply(input,1,function(x) t(w)%*%x)  # multiplying transpose of w with each row of input matrix to get initial hypothesis function
-    res <- as.vector(input %*% w) #equivalent operation
+    #res <- apply(input,1,function(x) t(w)%*%x)  # multiply transpose of w with each row of input matrix to get initial hypothesis
+    res <- as.vector(input %*% w) # equivalent operation
     
-    best <- list(sum(sign(res) != generated$data$y)/length(res), w)  # initializing list to keep track of the best in-sample error achieved so far and the weight vector that produced it
+    best <- list(sum(sign(res) != generated$data$y)/length(res), w)  # initialize list to keep track of the best in-sample error achieved so far and the weight vector that produced it
     
     k <- 0  # initializing iteration counter
     
     while (any(sign(res) != generated$data$y) && k < maxIterations) # as long as any of the elements of res do not match the true output, y, and the iterations threshold has not been reached
                                                                     # the PLA algorithm continues to iterate  
     {                                           
-      misclassified <- which(sign(res) != generated$data$y)  # getting the indices of the points for which hypothesis is wrong
+      misclassified <- which(sign(res) != generated$data$y)  # get the indices of the points for which hypothesis is wrong
       ifelse (length(misclassified) == 1, n <- misclassified, n <- sample(misclassified,1))  # randomly choose one of these points
       w <- w + generated$data$y[n]*input[n, ]                # update the weights
       res <- apply(input, 1, function(x) t(w)%*%x)           # use new weights to update the hypothesis function
@@ -88,16 +89,16 @@ PLA.simulate <- function(N_train = 10, N_test = 1000, numTrials = 1000, maxItera
       k <- k+1          # increment iteration count
     }
     
-    w <- best[[2]]      #selecting the best weight vector discovered by the algorithm
+    w <- best[[2]]      # select the best weight vector discovered by the algorithm
     
     iterations[i] <- k  # store the number of iterations needed in this run
     
     new.data <- simulation(N_test)  # generating the test points in order to examine out-of-sample performance
-    f <- as.numeric(new.data$x1 * generated$slope + generated$intercept > new.data$x2) * 2 - 1  # classifying points according to the true function f
-    g <- as.numeric(new.data$x1 * (-w[2]/w[3]) - w[1]/w[3] > new.data$x2) * 2 - 1    # classifying points according to the hypothesised function g, using the 
+    f <- as.numeric(new.data$x1 * generated$slope + generated$intercept > new.data$x2) * 2 - 1  # classify points according to the target function f
+    g <- as.numeric(new.data$x1 * (-w[2]/w[3]) - w[1]/w[3] > new.data$x2) * 2 - 1    # classify points according to the hypothesized function g, using the 
                                                                                      # final weights provided by PLA            
     
-    probability[i] <- sum(f != g)/N_test  # store the misclassification error from this run
+    E_out[i] <- sum(f != g)/N_test  # store the misclassification error from this run
   }
   
   # Plot the points and f and g functions from the last iteration (purely illustrative purposes)
@@ -109,8 +110,8 @@ PLA.simulate <- function(N_train = 10, N_test = 1000, numTrials = 1000, maxItera
   
   print(plot1)
   
-  # Final results: average of iterations and estimated misclassification probabilities
-  list(iterations = mean(iterations), probability = mean(probability)) 
+  # final results: average number of iterations and estimated misclassification probabilities
+  list(num_iterations = mean(iterations), E_out = mean(E_out)) 
 }
 
 set.seed(10111)
