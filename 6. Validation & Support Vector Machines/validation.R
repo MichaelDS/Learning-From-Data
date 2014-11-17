@@ -58,7 +58,7 @@ regression.classify <- function(D, D_test, K, offset = 0, transform = NULL, d = 
   y_testFit <- sign(t(w_)%*%t(X_test))
   E_out <- sum(y_testFit != y_test)/length(y_testFit)
   
-  if(plotBoundary){
+  if(plotBoundary){                                                                   # if specified, plot the decision boundaries
     library(ggplot2)
     library(gridExtra)
     titlePiece <- as.character(d)                                                     # store value of d for plot title
