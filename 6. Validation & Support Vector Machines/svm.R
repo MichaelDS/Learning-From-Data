@@ -55,46 +55,41 @@ data.generate <- function(N = 10, limits = c(-1, 1), generateTarget = FALSE){
 
 ## 1/2*t(alpha)%*%Q%*%alpha - t(1)%*%alpha
 ## w & b
-SVM.simulate <- function(N_train = 10, N_test = 1000, numTrials = 1000, simulation = data.generate, plotApproximation = FALSE, trialResults = FALSE){
+SVM <- function(train, test, plotApproximation = FALSE){
   library(LowRankQP)
-  E_out <- numeric(numTrials)
-  numSV <- numeric(numTrials)
   
-  for(i in 1:numTrials) {
-    sim <- simulation(N = N_train, generateTarget = TRUE) # generate points and target function
-    y <- sim$data$y
-    X <- as.matrix(sim$data[-(ncol(sim$data))]) # extract the input vectors; not cbinding an intercept term, x0, in order to simplify calculations
-    L <- rep(-1, N_train)                       # linear term; vector appearing in the quadratic function to be minimized
-    Q <- (y*X)%*%t(y*X)                         # quadratic term; matrix appearing in quadratic function to be minimized; vectorized construction is more efficient than loops
-    constraintMatrix <- t(y)                    # matrix defining the constraints under which to minimize the quadratic function
-    constraintValues <- 0                       # vector of constraint values under which to minimize the quadratic function
-    upperBounds <- rep(10000, N_train)          # vector of upper bounds on the Lagrange multipliers; 0 <= alpha_i <= upperLimit; theoretical upper limit is +infitity, using 10000 instead
-    
-    solution <- LowRankQP(Vmat = Q, dvec = L, Amat = constraintMatrix, bvec = constraintValues, uvec = upperBounds, method = 'LU')  # find solution that minimizes the quadratic function
-    alpha <- zapsmall(solution$alpha, digits = 6)  # extract the Lagrange multiplier; values greater than 0 correspont to support vectors; zapsmall() rounds extremely small alphas down to zero
-    sv_indices <- which(alpha != 0)                # compute the indices of the support vectors
-    
-    w <- colSums(alpha[sv_indices] * y[sv_indices] * X[sv_indices, ]) # use alpha to compute w (which does not include w0, the bias term, in this case)
-    
-#     w <- numeric(ncol(X))                                           # simpler with colSums
-#     for(n in sv_indices) {                         
-#       w <- w + alpha[n]*y[n]*X[n, ]
-#     }
+  y <- train$data$y
+  X <- as.matrix(train$data[-(ncol(train$data))]) # extract the input vectors; not cbinding an intercept term, x0, in order to simplify calculations
+  L <- rep(-1, nrow(X))                           # linear term; vector appearing in the quadratic function to be minimized
+  Q <- (y*X)%*%t(y*X)                             # quadratic term; matrix appearing in quadratic function to be minimized; vectorized construction is more efficient than loops
+  constraintMatrix <- t(y)                        # matrix defining the constraints under which to minimize the quadratic function
+  constraintValues <- 0                           # vector of constraint values under which to minimize the quadratic function
+  upperBounds <- rep(10000, nrow(X))              # vector of upper bounds on the Lagrange multipliers; 0 <= alpha_i <= upperLimit; theoretical upper limit is +infitity, using 10000 instead
+  solution <- LowRankQP(Vmat = Q, dvec = L, Amat = constraintMatrix, bvec = constraintValues, uvec = upperBounds, method = 'LU')  # find solution that minimizes the quadratic function
+  alpha <- zapsmall(solution$alpha, digits = 6)   # extract the Lagrange multiplier; values greater than 0 correspont to support vectors; zapsmall() rounds extremely small alphas down to zero
+  sv_indices <- which(alpha != 0)                 # compute the indices of the support vectors
+  w <- colSums(alpha[sv_indices] * y[sv_indices] * X[sv_indices, ]) # use alpha to compute w (which does not include w0, the bias term, in this case)
 
-    b = as.numeric(1/y[sv_indices[1]] - t(w)%*%X[sv_indices[1], ])  # solve for the bias term; can be done using any of the support vectors
-    
-    X_test <- as.matrix(simulation(N_test))
-    y_test <- as.numeric(X_test[, 'x1'] * sim$slope + sim$intercept > X_test[, 'x2']) * 2 - 1  # classify points according to the target function f
-    y_fit <- sign(w%*%t(X_test) + b)               # classify points according to the final hypothesis
-    numSV <- length(sv_indices)                    # store the number of support vectors from this run
-    
-    ##testing purposes
-    #     library(e1071)
-    #     t <- svm(y~x1+x2, data = sim$data, scale = FALSE, kernel = 'linear', cost = 1000, type = 'C-classification')
-    #     y_fit <- predict(t, newdata = X_test)
-    
-    E_out[i] <- sum(y_test != y_fit)/N_test        # store the misclassification error from this run
-  }
+  #     w <- numeric(ncol(X))                                       # simpler with colSums
+  #     for(n in sv_indices) {                         
+  #       w <- w + alpha[n]*y[n]*X[n, ]
+  #     }
+  
+  b = as.numeric(1/y[sv_indices[1]] - t(w)%*%X[sv_indices[1], ])    # solve for the bias term; can be done using any of the support vectors
+  
+  X_test <- as.matrix(test[, -ncol(test)])
+  y_test <- test$y                 
+  y_fit <- sign(w%*%t(X_test) + b)                # classify points according to the final hypothesis
+  numSV <- length(sv_indices)                     # store the number of support vectors found
+  
+  ##testing purposes
+#   library(e1071)
+#   t <- svm(y~x1+x2, data = train$data, scale = FALSE, kernel = 'linear', cost = 1000, type = 'C-classification')
+#   y_fit <- predict(t, newdata = X_test)
+#   print(t$SV)
+#   print(X[sv_indices, ])
+  
+  E_out <- sum(y_test != y_fit)/N_test             # store the misclassification error 
   
   if(plotApproximation) {                          # construct classification plots for the training and test runs
     par(mfrow = c(1,2))
@@ -118,85 +113,129 @@ SVM.simulate <- function(N_train = 10, N_test = 1000, numTrials = 1000, simulati
     ygrid <- sign(w%*%t(xgrid) + b)
     plot(xgrid, col = c('red', 'blue')[as.numeric(as.factor(ygrid))], pch = 20, cex = 0.2, main = 'SVM Classification Plot - Test')
     points(X_test, col = y_test + 3, pch = 19, cex = 0.5)
-    abline(sim$intercept, sim$slope, col = 'green3')
+    abline(train$intercept, train$slope, col = 'green3')
     abline(-b/w[2], -w[1]/w[2])
     abline(-(b+1)/w[2], -w[1]/w[2], lty = 2)
     abline(-(b-1)/w[2], -w[1]/w[2], lty = 2)
   }
   
-  if(trialResults)
-    return(E_out) # if specified, return the vector of E_out computed each trial
-  
-  # return the estimated expected out-of-sample error, average number of support vectors
-  list(E_out = mean(E_out), avg_num_support_vectors = mean(numSV)) 
+  # return the out-of-sample error and the number of support vectors
+  list(E_out = E_out, num_support_vectors = numSV, w = w, b = b) 
+}
+
+SVM.simulate <- function(N_train = 10, N_test = 1000, numTrials = 1000, simulation = data.generate, plotApproximation = FALSE) {
+  E_out <- numeric(numTrials)
+  num_SV <- numeric(numTrials)
+  for(i in 1:numTrials) {
+    train <- simulation(N_train, generateTarget = TRUE)
+    test <- simulation(N_test)
+    test$y <- as.numeric(test[, 'x1'] * train$slope + train$intercept > test[, 'x2']) * 2 - 1
+    result <- SVM(train, test, plotApproximation)
+    E_out[i] <- result$E_out
+    num_SV[i] <- result$num_support_vectors
+  }
+  list(E_out = mean(E_out), avg_num_support_vectors = mean(num_SV))
 }
 
 ## Uses the perceptron(pocket) learning algorithm to approximate target functions on simulated data
 ## Returns a list containing the number of iterations taken by PLA and the out-of-sample error averaged across numTrials
 ## Plots the target function and final hypothesis of the last trial against training data and against test data
-PLA.simulate <- function(N_train = 10, N_test = 10000, numTrials = 1000, maxIterations = Inf, simulation = data.generate, plotApproximation = FALSE, trialResults = FALSE) {
-  iterations <- numeric(numTrials)    # initializing the iteration and misclassification probability vectors
-  E_out <- numeric(numTrials)
+PLA <- function(train, test, maxIterations = Inf, plotApproximation = FALSE) {
+
+  input <- as.matrix(cbind(1, train$data[c(1,2)]))            # create the input matrix
   
-  # number of times to repeat the experiment is specified by numTrials
+  w <- c(0,0,0)                                               # initialize the weight vector
   
-  for (i in 1:numTrials){
-    sim <- simulation(N = N_train, generateTarget = TRUE) # generate points and target function
-    input <- as.matrix(cbind(1, sim$data[c(1,2)])) # create the input matrix
-    
-    w <- c(0,0,0)  # initialize the weight vector
-    
-    res <- as.vector(input %*% w) # apply the initial weights to the input to get the initial hypothesis
-    
-    best <- list(sum(sign(res) != sim$data$y)/length(res), w)  # initialize list to keep track of the best in-sample error achieved so far and the weight vector that produced it
-    
-    k <- 0  # initializing iteration counter
-    
-    while (any(sign(res) != sim$data$y) && k < maxIterations) # as long as any of the elements of res do not match the true output, y, and the iterations threshold has not been reached
-      # the PLA algorithm continues to iterate  
-    {                                           
-      misclassified <- which(sign(res) != sim$data$y)  # get the indices of the points for which hypothesis is wrong
-      ifelse (length(misclassified) == 1, n <- misclassified, n <- sample(misclassified,1))  # randomly choose one of these points
-      w <- w + sim$data$y[n]*input[n, ]                # update the weights
-      res <- apply(input, 1, function(x) t(w)%*%x)           # use new weights to update the hypothesis function
-      e_in <- sum(sign(res) != sim$data$y)/length(res) # calculate in-sample error
-      if (e_in < best[[1]]) {
-        best <- list(e_in, w) # if a the current weight vector is better than the previous best, store it
-      }
-      k <- k + 1          # increment iteration count
+  res <- as.vector(input%*%w)                                 # apply the initial weights to the input to get the initial hypothesis
+  
+  best <- list(sum(sign(res) != train$data$y)/length(res), w) # initialize list to keep track of the best in-sample error achieved so far and the weight vector that produced it
+  
+  k <- 0                                                      # initializing iteration counter
+  
+  while (any(sign(res) != train$data$y) && k < maxIterations) # as long as any of the elements of res do not match the true output, y, and the iterations threshold has not been reached
+                                                              # the PLA algorithm continues to iterate  
+  {                                            
+    misclassified <- which(sign(res) != train$data$y)         # get the indices of the points for which hypothesis is wrong
+    ifelse (length(misclassified) == 1, n <- misclassified, n <- sample(misclassified,1))  # randomly choose one of these points
+    w <- w + train$data$y[n]*input[n, ]                       # update the weights
+    res <- apply(input, 1, function(x) t(w)%*%x)              # use new weights to update the hypothesis function
+    e_in <- sum(sign(res) != train$data$y)/length(res)        # calculate in-sample error
+    if (e_in < best[[1]]) {
+      best <- list(e_in, w)                                   # if a the current weight vector is better than the previous best, store it
     }
-    
-    w <- best[[2]]      # selecting the best weight vector discovered by the algorithm
-    
-    iterations[i] <- k  # store the number of iterations needed in this run
-    
-    new.data <- simulation(N_test)  # generating the test points in order to examine out-of-sample performance
-    f <- as.numeric(new.data$x1 * sim$slope + sim$intercept > new.data$x2) * 2 - 1  # classify points according to the target function f
-    g <- as.numeric(new.data$x1 * (-w[2]/w[3]) - w[1]/w[3] > new.data$x2) * 2 - 1   # classify points according to the hypothesized function g, using the 
-                                                                                    # final weights provided by PLA            
-    
-    E_out[i] <- sum(f != g)/N_test  # store the misclassification error from this run
+    k <- k + 1                                                # increment iteration count
   }
+  
+  w <- best[[2]]                                              # selecting the best weight vector discovered by the algorithm
+  
+  iterations <- k                                             # store the number of iterations needed in this run
+  
+  X_test <- cbind(1, as.matrix(test[, -ncol(test)]))
+  y_test <- test$y
+  y_fit <- sign(w%*%t(X_test))                                # classify points according to the final hypothesis
+
+#  g <- as.numeric(test$x1 * (-w[2]/w[3]) - w[1]/w[3] > test$x2) * 2 - 1 # this method flips the classifications on occasional iterations for some reason
+    
+##  TESTING PURPOSES
+# #   print(sum(y_fit == g))
+#   if(sum(y_fit == g) == 0) {
+#     print(sum(y_test != g)/N_test)
+#     print('---------')
+#     print(sum(y_test != y_fit)/N_test)
+#     library(ggplot2)
+#     library(gridExtra)
+#     plot1 <- qplot(x1,x2,col= as.factor(y), data = train$data) + geom_abline(intercept = train$intercept, slope = train$slope) +
+#       geom_abline(intercept = -w[1]/w[3], slope = -w[2]/w[3], col=3)
+#     plot2 <- qplot(x1,x2,col= as.factor(y_fit), data = test) + geom_abline(data = train$data, intercept = train$intercept, slope = train$slope) +
+#       geom_abline(intercept = -w[1]/w[3], slope = -w[2]/w[3], col=3)
+#     plot3 <- qplot(x1,x2,col= as.factor(g), data = test) + geom_abline(data = train$data, intercept = train$intercept, slope = train$slope) +
+#       geom_abline(intercept = -w[1]/w[3], slope = -w[2]/w[3], col=3)
+#     grid.arrange(plot1, plot2, plot3, ncol = 3)
+#   }
+
+  E_out <- sum(y_test != y_fit)/N_test                                        # store the misclassification error from this run
   
   if(plotApproximation) {
     # Plot the points and f and g functions from the last iteration (purely illustrative purposes)
     library(ggplot2)
-    plot1 <- qplot(x1,x2,col= as.factor(y), data = generated$data) + geom_abline(intercept = generated$intercept, slope = generated$slope) +
-      geom_abline(intercept = -w[1]/w[3], slope = -w[2]/w[3], col=3)
-    print(plot1)
+    library(gridExtra)
+    plot1 <- qplot(x1,x2,col= as.factor(y), data = train$data, main = 'Perceptron - Training') + geom_abline(intercept = train$intercept, slope = train$slope) +
+      geom_abline(intercept = -w[1]/w[3], slope = -w[2]/w[3], col='yellow')
+    plot2 <- qplot(x1,x2,col= as.factor(y), data = test, main = 'Perceptron - Test') + geom_abline(data = train$data, intercept = train$intercept, slope = train$slope) +
+      geom_abline(intercept = -w[1]/w[3], slope = -w[2]/w[3], col='yellow')
+    grid.arrange(plot1, plot2, ncol = 2)
   }
   
-  if(trialResults)
-    return(E_out) # if specified, return the vector of E_out computed each trial
-  
-  # return the estimated expected out-of-sample error, average number of iterations taken by PLA
-  list(E_out = mean(E_out), avg_num_iterations = mean(iterations)) 
+  # return the out-of-sample error and the number of iterations taken by PLA
+  list(E_out = E_out, num_iterations = iterations) 
 }
 
-SVM_PLA.compare <- function(N_train = 10, N_test = 1000, numTrials = 1000, maxIterations = Inf, simulation = data.generate, plotApproximation = FALSE, trialResults = TRUE) {
-  SVM_error <- SVM.simulate(N_train, N_test, numTrials, simulation, plotApproximation, trialResults)
-  PLA_error <- PLA.simulate(N_train, N_test, numTrials, maxIterations, simulation, plotApproximation, trialResults)
-  sum(SVM_error < PLA_error)/numTrials
+PLA.simulate <- function(N_train = 10, N_test = 1000, numTrials = 1000, maxIterations = Inf, simulation = data.generate, plotApproximation = FALSE) {
+  E_out <- numeric(numTrials)
+  num_iter <- numeric(numTrials)
+  for(i in 1:numTrials) {
+    train <- simulation(N_train, generateTarget = TRUE)
+    test <- simulation(N_test)
+    test$y <- as.numeric(test[, 'x1'] * train$slope + train$intercept > test[, 'x2']) * 2 - 1
+    result <- PLA(train, test, maxIterations, plotApproximation)
+    E_out[i] <- result$E_out
+    num_iter[i] <- result$num_iterations
+  }
+  list(E_out = mean(E_out), avg_num_iterations = mean(num_iter))
+}
+
+SVM_PLA.compare <- function(N_train = 10, N_test = 10000, numTrials = 1000, maxIterations = Inf, simulation = data.generate, plotApproximation = FALSE) {
+  count <- 0
+  for(i in 1:numTrials) {
+    train <- simulation(N_train, generateTarget = TRUE)
+    test <- simulation(N_test)
+    test$y <- as.numeric(test[, 'x1'] * train$slope + train$intercept > test[, 'x2']) * 2 - 1
+    SVM_error <- SVM(train, test, plotApproximation)$E_out
+    PLA_error <- PLA(train, test, maxIterations, plotApproximation)$E_out
+    if(SVM_error < PLA_error)
+      count <- count + 1
+  }
+  count/numTrials
 }
 
 set.seed(10111)
@@ -205,7 +244,10 @@ SVM_PLA.compare()              # Problem 8
 SVM_PLA.compare(N_train = 100) # Problem 9
 SVM.simulate(N_train = 100)    # Problem 10
 
-## Sample calls to run the SVM simulation with the plotting feature activated
-# SVM.simulate(N_train = 10)    
-# SVM.simulate(N_train = 100)    
+## Sample calls to run SVM with the plotting feature activated
+# SVM.simulate(N_train = 10, numTrials = 1, plotApproximation = TRUE)    
+# SVM.simulate(N_train = 100, numTrials = 1, plotApproximation = TRUE)    
 
+## Sample calls to run the PLA simulation with the plotting feature activated
+# PLA.simulate(N_train = 10, numTrials = 1, plotApproximation = TRUE)
+# PLA.simulate(N_train = 100, numTrials = 1, plotApproximation = TRUE)

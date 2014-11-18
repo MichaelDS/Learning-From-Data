@@ -95,7 +95,7 @@ PLA.simulate <- function(N_train = 10, N_test = 1000, numTrials = 1000, maxItera
     
     new.data <- simulation(N_test)  # generating the test points in order to examine out-of-sample performance
     f <- as.numeric(new.data$x1 * generated$slope + generated$intercept > new.data$x2) * 2 - 1  # classify points according to the target function f
-    g <- as.numeric(new.data$x1 * (-w[2]/w[3]) - w[1]/w[3] > new.data$x2) * 2 - 1    # classify points according to the hypothesized function g, using the 
+    g <- w%*%t(cbind(1, new.data))    # classify points according to the hypothesized function g, using the 
                                                                                      # final weights provided by PLA            
     
     E_out[i] <- sum(f != g)/N_test  # store the misclassification error from this run
@@ -104,11 +104,13 @@ PLA.simulate <- function(N_train = 10, N_test = 1000, numTrials = 1000, maxItera
   # Plot the points and f and g functions from the last iteration (purely illustrative purposes)
   
   library(ggplot2)
-  
-  plot1 <- qplot(x1,x2,col= as.factor(y), data = generated$data) + geom_abline(intercept = generated$intercept, slope = generated$slope) +
-    geom_abline(intercept = -w[1]/w[3], slope = -w[2]/w[3], col=3)
-  
-  print(plot1)
+  library(gridExtra)
+
+  plot1 <- qplot(x1,x2,col= as.factor(y), data = generated$data, main = 'Perceptron - Training') + geom_abline(intercept = generated$intercept, slope = generated$slope) +
+    geom_abline(intercept = -w[1]/w[3], slope = -w[2]/w[3], col='yellow')
+  plot2 <- qplot(x1,x2,col= as.factor(f), data = new.data, main = 'Perceptron - Test') + geom_abline(data = generated$data, intercept = generated$intercept, slope = generated$slope) +
+    geom_abline(intercept = -w[1]/w[3], slope = -w[2]/w[3], col='yellow')
+  grid.arrange(plot1, plot2, ncol = 2)
   
   # final results: average number of iterations and estimated misclassification probabilities
   list(num_iterations = mean(iterations), E_out = mean(E_out)) 
