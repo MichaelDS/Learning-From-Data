@@ -43,19 +43,19 @@ regression.classify <- function(D, D_test, K, offset = 0, transform = NULL, d = 
   X_val <- X_full[offset:(offset+K-1), ]
   
   # Compute a final hypothesis using the reduced training set for use with the validation set
-  w_ <- solve(t(X_train)%*%X_train)%*%t(X_train)%*%y_train   
-  
+  w_red <- solve(t(X_train)%*%X_train)%*%t(X_train)%*%y_train   
+
   # Compute a final hypothesis using the full training set for use with the test set
-  w <- solve(t(X_full)%*%X_full)%*%t(X_full)%*%y_full
-  
+  # w <- solve(t(X_full)%*%X_full)%*%t(X_full)%*%y_full  # this was not necessary for the problem set
+
   # Apply the final hypothesis to the inputs and calculate E_in, E_val, and E_out
-  y_trainFit <- sign(t(w_)%*%t(X_train))
+  y_trainFit <- sign(t(w_red)%*%t(X_train))
   E_in <- sum(y_trainFit != y_train)/length(y_trainFit)
   
-  y_valFit <- sign(t(w_)%*%t(X_val))
+  y_valFit <- sign(t(w_red)%*%t(X_val))
   E_val <- sum(y_valFit != y_val)/length(y_valFit)
   
-  y_testFit <- sign(t(w_)%*%t(X_test))
+  y_testFit <- sign(t(w_red)%*%t(X_test))
   E_out <- sum(y_testFit != y_test)/length(y_testFit)
   
   if(plotBoundary){                                                                   # if specified, plot the decision boundaries
@@ -64,7 +64,7 @@ regression.classify <- function(D, D_test, K, offset = 0, transform = NULL, d = 
     titlePiece <- as.character(d)                                                     # store value of d for plot title
     grid.fit <- expand.grid(list(x1 = seq(-1.5, 1.5, .01), x2 = seq(-1.5, 1.5, .01))) # create a data frame of all combinations of specified x1 and x2 values
     grid.transformed <- transform(grid.fit, d)                                        # transform the grid into the feature space defined by the non-linear transformation
-    y <- sign(t(w_)%*%t(grid.transformed))                                            # apply the final hypothesis to every point on the transformed grid in order to obtain predicted y values 
+    y <- sign(t(w_red)%*%t(grid.transformed))                                            # apply the final hypothesis to every point on the transformed grid in order to obtain predicted y values 
     grid.fit$y <- t(y)                                                                # append the predictions to the un-transformed grid
     
     ## Set up the basic plot and the decision boundary
