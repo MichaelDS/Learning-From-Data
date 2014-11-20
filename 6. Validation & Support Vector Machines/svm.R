@@ -19,11 +19,88 @@
 #   Normalize w such that |t(w)%*%x_n| = 1
 #   Pull w_0 out of w such that w = (w_1, ..., w_d) apart from b
 #   The plane is now t(w)%*%x + b = 0  (no x_0)
-#   The distance between x_n and the plane can be shown to be 1/||w||
+#   The problem can is now rewritten as finding the distance between x_n and the plane t(w)%*%x + b = 0, 
+#   where |t(w)%*%x_n| + b = 1
+#   The vector w is perpendicular to the plane in X space:
+#   Take x' and x'' on the plane
+#   t(w)%*%x' + b = 0 and t(w)%*%x'' + b = 0  =>  t(w)%*%(x'' - x') = 0
+#   The distance between x_n and the plane can be shown to be 1/||w||; take any point x on the plane:
+#     The projection of (x_n - x) on w:
+#       w^ = w/||w||  =>  distance = |t(w^)%*%(x_n - x)|
+#     distance = (1/||w||)%*%(t(w)%*%x_n - t(w)%*%x) 
+#              = (1/||w||)%*%(|t(w)%*%x_n + b - t(w)%*%x - b|) = 1/||w||
 #   This yields the following optimization problem:
 #     Maximize 1/||w|| subject to min(n=1,2,...,N) |t(w)%*%x_n| + b = 1, which is equivalent to
-#     Minimize (1/2)*t(w)%*%w subject to y_n*(t(w)%*%x_n + b) >= 1, for n = 1,2, ..., N
+#     Minimize (1/2)*t(w)%*%w subject to y_n*(t(w)%*%x_n + b) >= 1, for n = 1,2, ..., N, w in R^d, b in R
+#
+# This is a constrained optimization problem; much like regularization optimizes E_in and constrains t(w)%*%w, 
+# here t(w)%*%w is optimized and E_in constrained.  
+# The Lagrange formulation of the problem is as follows:
+#   Minimize L(w, b, alpha) = (1/2)*t(w)%*%w - SIGMA(n - 1, N) alpha_n*(y_n*(t(w)%*%x_n + b) - 1)
+#   w.r.t. w and b and maximize w.r.t. each alpha_n >= 0:
+#     gradient_w(L) = w - SIGMA(n = 1, N) alpha_n*y_n*x_n = 0
+#     dL/db = -SIGMA(n = 1, N) alpha_n*y_n = 0
+#     so, w = SIGMA(n = 1, N) alpha_n*y_n*x_n
+#     and SIGMA(n = 1, N) alpha_n*y_n = 0
+#   Substituting these values simplifies the Lagrangian into following optimization problem;
+#   L(alpha) = SIGMA(n = 1, N) alpha_n - (1/2)*SIGMA(n = 1, N) SIGMA(m = 1, N) y_n*y_m*alpha_n*alpha_m*t(x_n)%*%x_m
+#   maximize w.r.t. alpha_n >= 0 for n = 1, ..., N and SIGMA(n = 1, N) alpha_n*y_n = 0
+#
+#   This reduces to the following quadratic programming problem;
+#   minimize (1/2)*t(alpha)%*%Q%*%alpha + t(L)%*%alpha
+#   subject to t(y)%*%alpha = 0
+#   where 0 <= alpha <= infinity, L = t(-1), and
+#   Q = cbind(c(y1*y1*t(x1)%*%x1, ..., yN*y1*t(xN)%*%x1), c(y1*y2*t(x1)%*%x2, ...,  yN*y2*t(xN)%*%x2), ....., c(y1*yN*t(x1)%*%xN, ...,  yN*yN*t(xN)%*%xN))
+#
+# Quadtratic Programming outputs the solution, alpha = alpha_1, alpha_2, ..., alpha_n
+# w = SIGMA(n = 1, N) alpha_n*y_n*x_n, (recall that w does not include a bias weight, w_0 in this case)
+# KKT condition: For n = 1, 2, ..., N
+#   alpha_n*(y_n*(t(w)%*%x_n + b) -1) = 0
+# Thus, an alpha_n > 0 indicates that x_n is a support vector (a point that falls on one of the margins of the separating hyperplane defined by w and b; (one of) the nearest point(s) to the plane t(w)%*%x + b = 0)
+# because the closest x_n's to the plane achieve the margin y_n*(t(w)%*%x_n + b) = 1
+# so w = SIGMA(x is SV) alpha_n*y_n*x_n
+# Solve for b using any SV; y_n*(t(w)%*%x_n + b) = 1
+#
+# Classify points using y_fit = sign(w%*%t(X_test) + b) 
+#
+# A non-linear transform  can be applied such that X -> Z and the Lagrange formulation is remapped as
+# L(alpha) = SIGMA(n = 1, N) alpha_n - (1/2)*SIGMA(n = 1, N) SIGMA(m = 1, N) y_n*y_m*alpha_n*alpha_m*t(z_n)%*%z_m
+# The solution is then found is the same manner as before.  The resulting support vectors exist in Z space where
+# their margin is maintained.  X contains pre-images of the support vectors.
+#
+# In spite of non-linear transforms, the generalization behavior of SVMs is approximately;
+# E[E_out] <= E[# of SV's]/(N - 1)
+# It depends on the number of support vectors instead of the dimension of the feature-space used; thus, a complex
+# model may be used at the cost of a simple one.
+#
+############### EXPERIMENT ###############
+#
+# This simulation implements support vector machines with a hard margin for binary classification and compares their 
+# performance against the perceptron learning algorithm (PLA).
+#
+# A target function f and a dataset D in d = 2 are created.  X = [-1, 1] x [-1, 1] with uniform probability of picking 
+# each x in X.  Each run chooses a random line in the plane as the target function by taking the line passing through 
+# two random, uniformly distributed points in [-1, 1] x [-1, 1], where one side of the line maps to +1 and the other 
+# maps to -1. The inputs, x_n, of the data set are chosen as random points (uniformly in X), and the target function is 
+# evaluated on each x_n to get the corresponding output, y_n.  If all of the data points are on one side of the line,
+# the data set is discarded and a new one is generated; this is to prevent the SVM from having an infinitely wide 
+# margin, which occurs when all of the data points are of the same class.
+#
+# PLA is implemented almost identically to its implementation in perceptron.R; see that file for more thorough notes 
+# on PLA.  On each run, PLA and SVM are trained on the same data set and then tested on a separate data set in order
+# to assess and compare their out-of-sample errors.  The number of support vectors found is also returned
+# by each run of SVM.  Classification plots for the training and test runs can be constructed for PLA and SVM if
+# specified using the plotApproximation parameter.
+#
+# A comparison of the out-of-sample errors achieved by PLA and SVM across 1000 trials using a training set with 
+# 10 data points and a test set with 10000 data points revealed that SVM out-performed PLA in approximately 61 percent
+# of the trials.  A similar comparison using 100 training examples in each run resulted in SVM out-performing PLA
+# in approximately 63.5 percent of the trials.  
+#
+# The average number of support vectors used by SVM across 1000 trials with training and test sets of size 10 and
+# 1000, respectively, was found to be approximately 3.
 
+############### IMPLEMENTATION ###############
 
 ## Generates the input data and, if specified, a target function
 ## Ensures that the response values do not all belong to a single class
@@ -69,7 +146,7 @@ SVM <- function(train, test, plotApproximation = FALSE){
   alpha <- zapsmall(solution$alpha, digits = 6)   # extract the Lagrange multiplier; values greater than 0 correspont to support vectors; zapsmall() rounds extremely small alphas down to zero
   sv_indices <- which(alpha != 0)                 # compute the indices of the support vectors
   w <- colSums(alpha[sv_indices] * y[sv_indices] * X[sv_indices, ]) # use alpha to compute w (which does not include w0, the bias term, in this case)
-
+  
   #     w <- numeric(ncol(X))                                       # simpler with colSums
   #     for(n in sv_indices) {                         
   #       w <- w + alpha[n]*y[n]*X[n, ]
@@ -83,13 +160,13 @@ SVM <- function(train, test, plotApproximation = FALSE){
   numSV <- length(sv_indices)                     # store the number of support vectors found
   
   ##testing purposes
-#   library(e1071)
-#   t <- svm(y~x1+x2, data = train$data, scale = FALSE, kernel = 'linear', cost = 1000, type = 'C-classification')
-#   y_fit <- predict(t, newdata = X_test)
-#   print(t$SV)
-#   print(X[sv_indices, ])
+  #   library(e1071)
+  #   t <- svm(y~x1+x2, data = train$data, scale = FALSE, kernel = 'linear', cost = 1000, type = 'C-classification')
+  #   y_fit <- predict(t, newdata = X_test)
+  #   print(t$SV)
+  #   print(X[sv_indices, ])
   
-  E_out <- sum(y_test != y_fit)/N_test             # store the misclassification error 
+  E_out <- sum(y_test != y_fit)/nrow(X_test)       # store the misclassification error 
   
   if(plotApproximation) {                          # construct classification plots for the training and test runs
     par(mfrow = c(1,2))
@@ -141,7 +218,7 @@ SVM.simulate <- function(N_train = 10, N_test = 1000, numTrials = 1000, simulati
 ## Returns a list containing the number of iterations taken by PLA and the out-of-sample error averaged across numTrials
 ## Plots the target function and final hypothesis of the last trial against training data and against test data
 PLA <- function(train, test, maxIterations = Inf, plotApproximation = FALSE) {
-
+  
   input <- as.matrix(cbind(1, train$data[c(1,2)]))            # create the input matrix
   
   w <- c(0,0,0)                                               # initialize the weight vector
@@ -153,7 +230,7 @@ PLA <- function(train, test, maxIterations = Inf, plotApproximation = FALSE) {
   k <- 0                                                      # initializing iteration counter
   
   while (any(sign(res) != train$data$y) && k < maxIterations) # as long as any of the elements of res do not match the true output, y, and the iterations threshold has not been reached
-                                                              # the PLA algorithm continues to iterate  
+    # the PLA algorithm continues to iterate  
   {                                            
     misclassified <- which(sign(res) != train$data$y)         # get the indices of the points for which hypothesis is wrong
     ifelse (length(misclassified) == 1, n <- misclassified, n <- sample(misclassified,1))  # randomly choose one of these points
@@ -173,27 +250,27 @@ PLA <- function(train, test, maxIterations = Inf, plotApproximation = FALSE) {
   X_test <- cbind(1, as.matrix(test[, -ncol(test)]))
   y_test <- test$y
   y_fit <- sign(w%*%t(X_test))                                # classify points according to the final hypothesis
-
-#  g <- as.numeric(test$x1 * (-w[2]/w[3]) - w[1]/w[3] > test$x2) * 2 - 1 # this method flips the classifications on occasional iterations for some reason
-    
-##  TESTING PURPOSES
-# #   print(sum(y_fit == g))
-#   if(sum(y_fit == g) == 0) {
-#     print(sum(y_test != g)/N_test)
-#     print('---------')
-#     print(sum(y_test != y_fit)/N_test)
-#     library(ggplot2)
-#     library(gridExtra)
-#     plot1 <- qplot(x1,x2,col= as.factor(y), data = train$data) + geom_abline(intercept = train$intercept, slope = train$slope) +
-#       geom_abline(intercept = -w[1]/w[3], slope = -w[2]/w[3], col=3)
-#     plot2 <- qplot(x1,x2,col= as.factor(y_fit), data = test) + geom_abline(data = train$data, intercept = train$intercept, slope = train$slope) +
-#       geom_abline(intercept = -w[1]/w[3], slope = -w[2]/w[3], col=3)
-#     plot3 <- qplot(x1,x2,col= as.factor(g), data = test) + geom_abline(data = train$data, intercept = train$intercept, slope = train$slope) +
-#       geom_abline(intercept = -w[1]/w[3], slope = -w[2]/w[3], col=3)
-#     grid.arrange(plot1, plot2, plot3, ncol = 3)
-#   }
-
-  E_out <- sum(y_test != y_fit)/N_test                                        # store the misclassification error from this run
+  
+  #  g <- as.numeric(test$x1 * (-w[2]/w[3]) - w[1]/w[3] > test$x2) * 2 - 1 # this method flips the classifications on occasional iterations for some reason
+  
+  ##  TESTING PURPOSES
+  # #   print(sum(y_fit == g))
+  #   if(sum(y_fit == g) == 0) {
+  #     print(sum(y_test != g)/N_test)
+  #     print('---------')
+  #     print(sum(y_test != y_fit)/N_test)
+  #     library(ggplot2)
+  #     library(gridExtra)
+  #     plot1 <- qplot(x1,x2,col= as.factor(y), data = train$data) + geom_abline(intercept = train$intercept, slope = train$slope) +
+  #       geom_abline(intercept = -w[1]/w[3], slope = -w[2]/w[3], col=3)
+  #     plot2 <- qplot(x1,x2,col= as.factor(y_fit), data = test) + geom_abline(data = train$data, intercept = train$intercept, slope = train$slope) +
+  #       geom_abline(intercept = -w[1]/w[3], slope = -w[2]/w[3], col=3)
+  #     plot3 <- qplot(x1,x2,col= as.factor(g), data = test) + geom_abline(data = train$data, intercept = train$intercept, slope = train$slope) +
+  #       geom_abline(intercept = -w[1]/w[3], slope = -w[2]/w[3], col=3)
+  #     grid.arrange(plot1, plot2, plot3, ncol = 3)
+  #   }
+  
+  E_out <- sum(y_test != y_fit)/nrow(X_test)                  # store the misclassification error from this run
   
   if(plotApproximation) {
     # Plot the points and f and g functions from the last iteration (purely illustrative purposes)
