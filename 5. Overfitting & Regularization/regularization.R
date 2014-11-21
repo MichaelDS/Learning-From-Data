@@ -11,7 +11,8 @@
 # Overfitting is conceptually different from bad generalization in that generalization worsens as the model becomes more
 # complex (more effective degrees of freedom or VC dimension), even if the out-of-sample performance is improving, 
 # whereas overfitting happens when out-of-sample performance worsens even though in-sample performance continues to 
-# improve with increased model complexity.
+# improve with increased model complexity.  In other words, overfitting generally occurs where E_in is not longer 
+# "tracking" the behavior of E_out.
 # 
 # Overfitting happens because of noise; a model that is too complex will interpret noise as a pattern and fit accordingly,
 # resulting in poor out-of-sample performance.  One can say that noise causes the model to 'hallucinate' a pattern.
@@ -53,7 +54,7 @@
 # Regularization allows us to fill in the gap between models of differing complexity and potentially discover an 
 # in-between solution that optimizes the fit.
 #
-# One popular for of regularization for polynomial fitting is known as weight decay.  It imposes a soft constraint on 
+# One popular form of regularization for polynomial fitting is known as weight decay.  It imposes a soft constraint on 
 # the weights on the linear model as follows:
 #
 # SIGMA(q = 0, Q) (w_q)^2 = SIGMA(q = 0, Q) t(w)%*%w <= C
@@ -69,15 +70,16 @@
 # 
 # w_reg = (t(Z)%*%Z + lambda*I)^-1 %*% t(Z)%*%y
 # 
-# Notice that this formula makes follows intuition. For very large lambda, this reduces to approximately 
+# Notice that this formula follows intuition. For very large lambda, this reduces to approximately 
 # (1/lambda)*t(Z)%*%y, where lambda is huge; this knocks down the magnitude of the weights.  Lambda is chosen in a 
 # principled way, via validation, in order to optimize the model's out-of-sample performance.  Choosing too small of a
 # lambda would not minimize overfitting, whereas choosing a lambda that is too large will result in underfitting.  
 # Although the choice of regularizer is heuristic, choosing lambda in a principled way will indicate when a poor 
 # regularizer has been chosen because lambda will simply be 0.  
 #
-# This method is called weight decay because the weights are decreased from one iteration to the next.  It applies to
-# neural networks, where the weights "decay" in each step of gradient descent at a rate proportional to lambda.
+# This method is called weight decay because the weights are decreased from one iteration to the next.  It can be 
+# applied to neural networks, where the weights "decay" in each step of gradient descent at a rate proportional to 
+# lambda.
 #
 # There are other variations of weight decay.  For example, emphasis can be placed on certain weights:
 #

@@ -1,11 +1,12 @@
 ############### SUPPORT VECTOR MACHINES ###############
 #
-# Support vector machines (SVM) enable learning via complex models at the price of a simple one and are one of the 
-# most successful learning algorithms to date.  The canonical SVM model is a non-probabilistic linear classifier 
-# mapped so that the training examples of the separate categories are divided by a clear margin that is as wide as
-# possible.  New examples are them mapped into that same space and predicted to belong to a category based on which
-# side of the gap they fall on.  In addition to performing linear classification, SVMs can efficiently perform a
-# non-linear classification by using a kernel method, implicitly mapping inputs into high-dimensional feature spaces.
+# Support vector machines (SVM) are some of the most successful learning algorithms to date.  In their canonical form, 
+# SVM models are non-probabilistic linear classifiers mapped so that the training examples of the separate categories 
+# are divided by a clear margin that is as wide as possible; requiring this margin significantly reduces model
+# complexity and optimizes its performance, allowing for the use of sophisticated hypotheses without fully paying the 
+# price for them.  New examples are them mapped into that same space and predicted to belong to a category based on 
+# which side of the gap they fall on.  In addition to performing linear classification, SVMs can efficiently perform a 
+# non-linear classification by using a kernel method, implicitly mapping inputs into high-dimensional feature spaces. 
 # Additionally, SVMs have been extended to perform other tasks including multi-class classification and regression.
 # 
 ############### SVM AS A LINEAR CLASSIFIER ###############
@@ -68,10 +69,13 @@
 # The solution is then found is the same manner as before.  The resulting support vectors exist in Z space where
 # their margin is maintained.  X contains pre-images of the support vectors.
 #
-# In spite of non-linear transforms, the generalization behavior of SVMs is approximately;
-# E[E_out] <= E[# of SV's]/(N - 1)
+# The generalization behavior of SVMs is described by the following bount:
+# E[E_out] <= E[# of SV's]/(N - 1) -> Normal form dividing the the complexity (number of parameters) by approximately
+#                                     the number of examples
 # It depends on the number of support vectors instead of the dimension of the feature-space used; thus, a complex
-# model may be used at the cost of a simple one.
+# transformation may be used at the cost of a simple model.  In other words, SVMs are able to generate a complex
+# hypothesis, h, while maintaining a simple hypothesis set, H, by maximizing the margin; thus, the model's 
+# generalization is not as penalized by complex hypothesis sets suggested by high-dimensional feature spaces.
 #
 ############### EXPERIMENT ###############
 #
