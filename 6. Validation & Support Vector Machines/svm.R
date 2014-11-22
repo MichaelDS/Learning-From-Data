@@ -163,7 +163,7 @@ SVM <- function(train, test, plotApproximation = FALSE){
   y_fit <- sign(w%*%t(X_test) + b)                # classify points according to the final hypothesis
   numSV <- length(sv_indices)                     # store the number of support vectors found
   
-  ##testing purposes
+  ## TESTING PURPOSES
   #   library(e1071)
   #   t <- svm(y~x1+x2, data = train$data, scale = FALSE, kernel = 'linear', cost = 1000, type = 'C-classification')
   #   y_fit <- predict(t, newdata = X_test)
@@ -258,7 +258,7 @@ PLA <- function(train, test, maxIterations = Inf, plotApproximation = FALSE) {
   #  g <- as.numeric(test$x1 * (-w[2]/w[3]) - w[1]/w[3] > test$x2) * 2 - 1 # this method flips the classifications on occasional iterations for some reason
   
   ##  TESTING PURPOSES
-  # #   print(sum(y_fit == g))
+  #   print(sum(y_fit == g))
   #   if(sum(y_fit == g) == 0) {
   #     print(sum(y_test != g)/N_test)
   #     print('---------')
