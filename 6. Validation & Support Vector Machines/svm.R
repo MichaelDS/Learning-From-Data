@@ -1,4 +1,4 @@
-############### SUPPORT VECTOR MACHINES ###############
+############### HARD-MARGIN SUPPORT VECTOR MACHINES ###############
 #
 # Support vector machines (SVM) are some of the most successful learning algorithms to date.  In their canonical form, 
 # SVM models are non-probabilistic linear classifiers mapped so that the training examples of the separate categories 
