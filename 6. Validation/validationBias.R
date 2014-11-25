@@ -11,4 +11,4 @@ validationBias.monteCarlo <- function(N = 10000) {
   list(expected_e1 = mean(e1), expected_e2 = mean(e2), expected_minimum_of_e1_and_e2 = mean(e))
 }
 
-validationBias.monteCarlo()
+validationBias.monteCarlo() # Problem 6
