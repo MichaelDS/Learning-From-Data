@@ -1,3 +1,5 @@
+############### HOEFFDING'S INEQUALITY ###############
+#
 # Hoeffding's inequality provides an upper bound on the probability of the empirical mean, v, of a sample 
 # of N independent random variables deviating from its expected value, m, by more than some amount, eps.  
 # In the case of Bernoulli random variables, it can be mathematically stated as follows:
