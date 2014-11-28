@@ -1,5 +1,31 @@
 ############### VALIDATION ###############
-
+#
+# Model validation techniques assess how the results of a statistical analysis will generalize to an independent data
+# set.  When the goal is prediction, validation is used to estimate how accurately the predictive model will perform
+# in practice.  In a prediction problem, them model is usually given a dataset of known data on which the training is
+# run (training dataset), and a dataset of first-seen data against which the model is tested (testing dataset).  The
+# goal of validation is to define a dataset to "test" the model in the training phase (a validation dataset) in order
+# to aid in model selection and limit problems like overfitting, give insight on how the model will generalize to an
+# independent dataset, etc.
+#
+# Validation vs regularization:
+#   In one form or another, E_out(h) = E_in(h) + overfit_penalty
+#   Regularization estimates overfit_penalty
+#   Validation estimates E_out(h)
+#
+# Analysis of the estimate:
+#   On out-of-sample point (x, y), the error is e(h(x), y)
+#   Squared error:  (h(x) - y)^2
+#   Binary error:   [[h(x) != y]]
+#   E[e(h(x), y)] = E_out(h)
+#   var[e(h(x), y)] = sigma^2
+#
+# From a point to a set:
+#   On a validation set (x_1, y_1), ..., (x_K, y_K), the error is E_val(h) = (1/K)*SIGMA(k = 1, K) e(h(x_k), y_K)
+#   E[E_val(h)] = (1/K)*SIGMA(k = 1, K) E[e(h(x_k), y_k)] = E_out(h)
+#   var[E_val(h)] = (1/K^2)*SIGMA(k = 1, K) var[e(h(x_k), y_k)] = (sigma^2)/K
+#   E_val(h) = E_out(h) +- O(1/sqrt(K))
+#
 
 ## Performs the non-linear transformation phi(x1, x2) = (1, x1, x2, x1^2, x2^2, x1*x2, |x1 - x2|, |x1 + x2|)
 ## Returns a specified expansion on phi(x1, x2)
