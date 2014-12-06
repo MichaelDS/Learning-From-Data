@@ -124,6 +124,6 @@ digits.regression(train, test, transform = transform.phi, digits = c(1, 5), lamb
 digits.regression(train, test, transform = transform.phi, digits = c(1, 5), lambda = 1)
 
 ## Some example calls to digits.regression using the plotting feature
- digits.regression(train, test, digits = c(1, 5), lambda = 1, plotBoundary = TRUE)
- digits.regression(train, test, transform = transform.phi, digits = c(1, 5), lambda = 1, plotBoundary = TRUE)
- digits.regression(train, test, transform = transform.phi, digits = c(1, 5), lambda = 0.01, plotBoundary = TRUE)
+# digits.regression(train, test, digits = c(1, 5), lambda = 1, plotBoundary = TRUE)
+# digits.regression(train, test, transform = transform.phi, digits = c(1, 5), lambda = 1, plotBoundary = TRUE)
+# digits.regression(train, test, transform = transform.phi, digits = c(1, 5), lambda = 0.01, plotBoundary = TRUE)
