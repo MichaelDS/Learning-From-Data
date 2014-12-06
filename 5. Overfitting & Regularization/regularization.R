@@ -91,7 +91,7 @@
 # In neural networks, this form is used to place emphasis on different weights at different layers.  This has been 
 # found to be the best way to apply weight decay to neural networks.  The regularizer used to do this is as follows:
 #
-# Tikhonov regularizer: t(w)%*%t(GAMMA)%*%GAMMA%*%w
+# Tikhonov regularizer: t(w)%*%t(GAMMA)%*%GAMMA%*%w <= C
 #
 # This regularizer is a general quadratic form capable of capturing the effects of various different regularizers
 # given the proper choice of GAMMA.  Weight decay in neural networks has a correspondence with the simplicity of the
@@ -211,14 +211,16 @@ regression.classify <- function(D_train, D_test, transform = NULL, lambda = 0, p
     library(gridExtra)
     titlePiece <- as.character(lambda)                                                # store value of lambda for plot title
     grid.fit <- expand.grid(list(x1 = seq(-1.5, 1.5, .01), x2 = seq(-1.5, 1.5, .01))) # create a data frame of all combinations of specified x1 and x2 values
-    grid.transformed <- transform(grid.fit)                                           # transform the grid into the feature space defined by the non-linear transformation
+    if(is.null(transform))
+      grid.fit <- cbind(1, grid.fit)
+    grid.transformed <- transform(grid.fit)                                           # just renames grid.fit if transform is null; otherise, transforms the grid into the feature space defined by the non-linear transformation
     y <- sign(t(w)%*%t(grid.transformed))                                             # apply the final hypothesis to every point on the transformed grid in order to obtain predicted y values 
     grid.fit$y <- t(y)                                                                # append the predictions to the un-transformed grid
     
     ## Set up the basic plot and the decision boundary
     base <- ggplot(data = grid.fit, aes(x1, x2, fill = as.factor(y))) + geom_tile() +
       xlab("x1") + ylab("x2") + 
-      scale_fill_discrete(limits = c(-1, 1)) +                                # was originally using scale_fill_gradient; discrete makes more sense here
+      scale_fill_discrete(limits = c(-1, 1)) +                                        # was originally using scale_fill_gradient; discrete makes more sense here
       scale_fill_manual(values = c('gray97', 'lightgoldenrod')) +
       labs(fill = 'Decision Boundary')
     

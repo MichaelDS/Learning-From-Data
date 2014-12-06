@@ -1,10 +1,5 @@
 ############### SOFT-MARGIN SUPPORT VECTOR MACHINES ###############
 
-############### NON-LINEAR CLASSIFICATION VIA THE KERNEL TRICK ###############
-
-
-
-
 digits.SVM <- function(train, test, digits = c(1, 5), C = 0.01, kernel = 'radial', degree = 3, gamma = 1, coef0 = 0, scale = FALSE, type = 'C-classification', classification.plot = FALSE) {
   library(e1071)
   if(length(digits) != 1 && length(digits) != 2)
