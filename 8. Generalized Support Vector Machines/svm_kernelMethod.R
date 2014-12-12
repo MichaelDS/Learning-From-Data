@@ -173,7 +173,8 @@ plot(D_transformed[-3], col = c('red', 'blue')[as.numeric(as.factor(D_transforme
 SVM(train = D_train, kernel = kernel.quadratic)
 
 ## Example calls using the plotting feature
-SVM(train = D_train, kernel = kernel.quadratic, plotApproximation = TRUE)
+SVM(train = D_transformed, kernel = NULL, plotApproximation = TRUE)         # Z-space manifestation of the decision boundary
+SVM(train = D_train, kernel = kernel.quadratic, plotApproximation = TRUE)   # The decision boundary in the original X-space
 
 d <- data.generate(N = 150, generateTarget = TRUE)$data
 tr <- d[1:50, ]
