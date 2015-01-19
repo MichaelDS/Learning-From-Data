@@ -40,7 +40,7 @@ data.generate <- function(N = 10, limits = c(-1, 1), generateTarget = FALSE){
   
   # draw a random line in the area (target function)
   point <- runif(2, limits[1], limits[2])
-  point2 <- runif(2, limits[1], limits)
+  point2 <- runif(2, limits[1], limits[2])
   slope <- (point2[2] - point[2]) / (point2[1] - point[1])
   intercept <- point[2] - slope * point[1]
   
@@ -95,9 +95,8 @@ PLA.simulate <- function(N_train = 10, N_test = 1000, numTrials = 1000, maxItera
     
     new.data <- simulation(N_test)  # generating the test points in order to examine out-of-sample performance
     f <- as.numeric(new.data$x1 * generated$slope + generated$intercept > new.data$x2) * 2 - 1  # classify points according to the target function f
-    g <- w%*%t(cbind(1, new.data))    # classify points according to the hypothesized function g, using the 
-                                                                                     # final weights provided by PLA            
-    
+    g <- sign(w%*%t(cbind(1, new.data)))    # classify points according to the hypothesized function g, using the 
+
     E_out[i] <- sum(f != g)/N_test  # store the misclassification error from this run
   }
   

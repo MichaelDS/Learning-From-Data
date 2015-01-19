@@ -118,7 +118,7 @@ data.generate <- function(N = 10, limits = c(-1, 1), generateTarget = FALSE){
     
     # draw a random line in the area (target function)
     point <- runif(2, limits[1], limits[2])
-    point2 <- runif(2, limits[1], limits)
+    point2 <- runif(2, limits[1], limits[2])
     slope <- (point2[2] - point[2]) / (point2[1] - point[1])
     intercept <- point[2] - slope * point[1]
     
@@ -234,7 +234,7 @@ PLA <- function(train, test, maxIterations = Inf, plotApproximation = FALSE) {
   k <- 0                                                      # initializing iteration counter
   
   while (any(sign(res) != train$data$y) && k < maxIterations) # as long as any of the elements of res do not match the true output, y, and the iterations threshold has not been reached
-    # the PLA algorithm continues to iterate  
+                                                              # the PLA algorithm continues to iterate  
   {                                            
     misclassified <- which(sign(res) != train$data$y)         # get the indices of the points for which hypothesis is wrong
     ifelse (length(misclassified) == 1, n <- misclassified, n <- sample(misclassified,1))  # randomly choose one of these points
